@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            color: #000;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            transform: rotate(0.5deg); /* slight scan skew */
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+        .subtitle {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .bill-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .hw {
+            font-family: 'Caveat', cursive;
+            font-size: 22px;
+            color: #001166;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .amt {
+            text-align: right;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .stamp {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            color: red;
+            border: 3px solid red;
+            padding: 5px 15px;
+            font-size: 28px;
+            font-family: Impact, sans-serif;
+            transform: rotate(-15deg);
+            opacity: 0.7;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            font-family: Arial, sans-serif;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">CITY CARE HOSPITAL</div>
+            <div class="subtitle">123, Healthcare Avenue, Medical District<br>Tel: +91-80-2234-5678 | NABH Accredited</div>
+        </div>
+
+        <div class="bill-title">PATIENT BILL SUMMARY</div>
+
+        <div class="info-grid">
+            <div><strong>Bill No:</strong> HOSP-4455</div>
+            <div><strong>Date:</strong> 15-04-2026</div>
+            <div><strong>Patient Name:</strong> <span class="hw">John Doe</span></div>
+            <div><strong>Age/Gender:</strong> 32 Yrs / Male</div>
+            <div><strong>Admission:</strong> 12-04-2026</div>
+            <div><strong>Discharge:</strong> 15-04-2026</div>
+            <div><strong>Ward:</strong> General - Room 204B</div>
+            <div><strong>Diagnosis:</strong> <span class="hw" style="font-size: 18px;">Viral Fever</span></div>
+            <div style="grid-column: span 2;"><strong>Treating Doctor:</strong> Dr. R. Sharma</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>PARTICULARS</th>
+                    <th class="amt">AMOUNT (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Room Charges (3 nights @ $133.33)</td>
+                    <td class="amt">400.00</td>
+                </tr>
+                <tr>
+                    <td>Medicines & Pharmacy</td>
+                    <td class="amt hw" style="font-size: 18px; text-align: right;">300.00</td>
+                </tr>
+                <tr>
+                    <td>Laboratory Tests</td>
+                    <td class="amt">200.00</td>
+                </tr>
+                <tr>
+                    <td>Doctor Consultation Fees</td>
+                    <td class="amt">300.00</td>
+                </tr>
+                <tr class="total-row">
+                    <td>TOTAL AMOUNT</td>
+                    <td class="amt">1,200.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="stamp">PAID</div>
+
+        <div class="footer">
+            "This is a computer generated bill. Please verify before payment."
+        </div>
+    </div>
+</body>
+</html>

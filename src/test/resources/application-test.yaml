@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: tpa-test
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tpadb
+    username: tpauser
+    password: tpapassword
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: tpa-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  mail:
+    host: localhost
+    port: 587
+    username: test
+    password: test
+  ai:
+    openai:
+      api-key: test-key-for-tests
+      base-url: https://api.groq.com/openai/v1
+      chat:
+        options:
+          model: llama-3.3-70b-versatile
+
+jwt:
+  secret: 9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9
+  expiration: 86400000
+
+admin:
+  name: test
+  email: test@test.com
+  mobile: 1234567890
+  password: test
+
+file:
+  upload-dir: ./test-uploads

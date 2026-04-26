@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Combined Document – Discharge Summary &amp; Hospital Bill</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 30px; }
+
+    /* ─── HOSPITAL HEADER ─── */
+    .hospital-header { display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 3px solid #006633; padding-bottom: 14px; margin-bottom: 20px; }
+    .hospital-header .left h1 { font-size: 20px; color: #006633; }
+    .hospital-header .left p { font-size: 11px; color: #555; margin-top: 3px; }
+    .hospital-header .right { text-align: right; font-size: 11px; color: #555; }
+    .hospital-header .right strong { display: block; font-size: 13px; color: #111; }
+
+    /* ─── SECTION TITLES ─── */
+    .section-title { background: #006633; color: #fff; padding: 6px 14px;
+      font-size: 13px; font-weight: bold; text-transform: uppercase;
+      letter-spacing: 0.5px; margin: 20px 0 12px 0; border-radius: 2px; }
+
+    /* ─── FIELD ROWS ─── */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 30px; margin-bottom: 10px; }
+    .info-grid .field label { display: block; font-size: 11px; color: #666; }
+    .info-grid .field .val { font-size: 13px; font-weight: 600; border-bottom: 1px solid #ccc; padding: 2px 0; }
+    .full-width { grid-column: 1 / -1; }
+
+    /* ─── TABLE ─── */
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+    th { background: #006633; color: #fff; padding: 7px 10px; text-align: left; font-size: 11px; }
+    td { padding: 7px 10px; border-bottom: 1px solid #e0e0e0; }
+    tr:nth-child(even) td { background: #f7faf8; }
+    .total-row td { font-weight: bold; background: #e8f5ec; border-top: 2px solid #006633; }
+    .right-align { text-align: right; }
+
+    /* ─── NOTES ─── */
+    .notes-box { border: 1px solid #ccc; border-radius: 4px; padding: 10px 14px; margin-top: 8px; font-size: 12px; line-height: 1.8; color: #333; }
+
+    /* ─── SIGNATURES ─── */
+    .sig-row { display: flex; justify-content: space-between; margin-top: 35px; }
+    .sig-box { text-align: center; width: 30%; }
+    .sig-line { border-top: 1px solid #333; margin-top: 40px; padding-top: 4px; font-size: 11px; color: #555; }
+
+    .page-break { page-break-before: always; margin-top: 40px; padding-top: 20px; }
+
+    @media print { body { padding: 10px; } }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     PART 1 – DISCHARGE SUMMARY
+═══════════════════════════════════════════ -->
+<div class="hospital-header">
+  <div class="left">
+    <h1>Apollo Hospitals</h1>
+    <p>154, Bannerghatta Road, Bangalore – 560076, Karnataka</p>
+    <p>Phone: +91-80-2630-4050 | Email: records@apollobangalore.in</p>
+    <p>NABH Accredited | Reg No: KA-HOS-00842</p>
+  </div>
+  <div class="right">
+    <strong>DISCHARGE SUMMARY</strong>
+    Document No: DS-2026-07841<br/>
+    Date: 16-04-2026
+  </div>
+</div>
+
+<div class="section-title">Patient Information</div>
+<div class="info-grid">
+  <div class="field"><label>Patient Name</label><div class="val">Rajesh Kumar Sharma</div></div>
+  <div class="field"><label>Patient ID (MRN)</label><div class="val">APL-MRN-884412</div></div>
+  <div class="field"><label>Date of Birth</label><div class="val">14-06-1988</div></div>
+  <div class="field"><label>Age / Gender</label><div class="val">37 Years / Male</div></div>
+  <div class="field"><label>Blood Group</label><div class="val">B+</div></div>
+  <div class="field"><label>Contact Number</label><div class="val">9876543210</div></div>
+  <div class="field full-width"><label>Address</label><div class="val">42, MG Road, Indiranagar, Bangalore – 560038</div></div>
+</div>
+
+<div class="section-title">Admission Details</div>
+<div class="info-grid">
+  <div class="field"><label>Date of Admission</label><div class="val">10-04-2026</div></div>
+  <div class="field"><label>Date of Discharge</label><div class="val">16-04-2026</div></div>
+  <div class="field"><label>Total Days Hospitalized</label><div class="val">6 Days</div></div>
+  <div class="field"><label>Ward / Room Type</label><div class="val">Semi-Private – Room 204</div></div>
+  <div class="field"><label>Admitted Under</label><div class="val">Dr. Priya Venkatesh (MS, General Surgery)</div></div>
+  <div class="field"><label>Referring Doctor</label><div class="val">Dr. Anand Murthy (MBBS, General Physician)</div></div>
+</div>
+
+<div class="section-title">Diagnosis</div>
+<div class="info-grid">
+  <div class="field"><label>Primary Diagnosis</label><div class="val">Acute Appendicitis (ICD-10: K35.80)</div></div>
+  <div class="field"><label>Secondary Diagnosis</label><div class="val">Nil</div></div>
+  <div class="field"><label>Procedure Performed</label><div class="val">Laparoscopic Appendectomy</div></div>
+  <div class="field"><label>Anaesthesia Type</label><div class="val">General Anaesthesia</div></div>
+  <div class="field"><label>Surgery Date</label><div class="val">11-04-2026</div></div>
+  <div class="field"><label>Surgeon</label><div class="val">Dr. Priya Venkatesh</div></div>
+</div>
+
+<div class="section-title">Hospital Name at Discharge</div>
+<div class="info-grid">
+  <div class="field"><label>Hospital</label><div class="val">Apollo Hospitals, Bangalore</div></div>
+  <div class="field"><label>Discharge Condition</label><div class="val">Stable – Recovered</div></div>
+</div>
+
+<div class="section-title">Clinical Notes &amp; Follow-up</div>
+<div class="notes-box">
+  Patient was admitted on 10-04-2026 with complaints of severe right lower abdominal pain, nausea, and low-grade fever for 2 days.
+  Clinical examination and ultrasound confirmed acute appendicitis. Laparoscopic appendectomy was performed successfully on 11-04-2026 under general anaesthesia.
+  Post-operative recovery was uneventful. Patient is discharged on 16-04-2026 in stable condition.<br/><br/>
+  <strong>Follow-up:</strong> Review after 7 days with surgical team.<br/>
+  <strong>Medications prescribed:</strong> Amoxicillin 500mg (5 days), Paracetamol 650mg (3 days), Pantoprazole 40mg (7 days).
+</div>
+
+<div class="sig-row">
+  <div class="sig-box"><div class="sig-line">Treating Doctor<br/>Dr. Priya Venkatesh</div></div>
+  <div class="sig-box"><div class="sig-line">Medical Records Officer</div></div>
+  <div class="sig-box"><div class="sig-line">Hospital Seal &amp; Date<br/>16-04-2026</div></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PART 2 – FINAL HOSPITAL BILL
+═══════════════════════════════════════════ -->
+<div class="page-break">
+
+<div class="hospital-header">
+  <div class="left">
+    <h1>Apollo Hospitals</h1>
+    <p>154, Bannerghatta Road, Bangalore – 560076, Karnataka</p>
+    <p>Phone: +91-80-2630-4050 | GSTIN: 29AABCA1234F1Z5</p>
+    <p>NABH Accredited | Reg No: KA-HOS-00842</p>
+  </div>
+  <div class="right">
+    <strong>FINAL HOSPITAL BILL</strong>
+    Bill No: INV-2026-00841<br/>
+    Bill Date: 16-04-2026
+  </div>
+</div>
+
+<div class="section-title">Patient &amp; Admission Reference</div>
+<div class="info-grid">
+  <div class="field"><label>Patient Name</label><div class="val">Rajesh Kumar Sharma</div></div>
+  <div class="field"><label>Patient ID (MRN)</label><div class="val">APL-MRN-884412</div></div>
+  <div class="field"><label>Hospital Name</label><div class="val">Apollo Hospitals</div></div>
+  <div class="field"><label>Ward / Room</label><div class="val">Semi-Private – Room 204</div></div>
+  <div class="field"><label>Date of Admission</label><div class="val">10-04-2026</div></div>
+  <div class="field"><label>Date of Discharge</label><div class="val">16-04-2026</div></div>
+  <div class="field"><label>Attending Doctor</label><div class="val">Dr. Priya Venkatesh</div></div>
+  <div class="field"><label>Diagnosis</label><div class="val">Acute Appendicitis</div></div>
+</div>
+
+<div class="section-title">Bill Breakdown</div>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Description</th>
+      <th>Qty / Days</th>
+      <th class="right-align">Rate (₹)</th>
+      <th class="right-align">Amount (₹)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Room Charges – Semi-Private (6 days)</td><td>6</td><td class="right-align">3,000</td><td class="right-align">18,000</td></tr>
+    <tr><td>2</td><td>Nursing &amp; Attendant Charges</td><td>6</td><td class="right-align">500</td><td class="right-align">3,000</td></tr>
+    <tr><td>3</td><td>OT &amp; Surgery Charges (Laparoscopic Appendectomy)</td><td>1</td><td class="right-align">18,000</td><td class="right-align">18,000</td></tr>
+    <tr><td>4</td><td>Anaesthesia Charges</td><td>1</td><td class="right-align">4,000</td><td class="right-align">4,000</td></tr>
+    <tr><td>5</td><td>Medicines &amp; Consumables</td><td>—</td><td class="right-align">—</td><td class="right-align">4,500</td></tr>
+    <tr><td>6</td><td>Laboratory &amp; Pathology Tests</td><td>—</td><td class="right-align">—</td><td class="right-align">2,800</td></tr>
+    <tr><td>7</td><td>Radiology (Ultrasound Abdomen)</td><td>1</td><td class="right-align">1,200</td><td class="right-align">1,200</td></tr>
+    <tr><td>8</td><td>Doctor Consultation Charges</td><td>6</td><td class="right-align">500</td><td class="right-align">3,000</td></tr>
+    <tr><td>9</td><td>Miscellaneous / Administrative</td><td>—</td><td class="right-align">—</td><td class="right-align">1,000</td></tr>
+    <tr class="total-row">
+      <td colspan="4" class="right-align">TOTAL BILL AMOUNT (₹)</td>
+      <td class="right-align">55,500</td>
+    </tr>
+    <tr>
+      <td colspan="4" class="right-align">Discount / Insurance Negotiation</td>
+      <td class="right-align">– 9,000</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="4" class="right-align">NET PAYABLE AMOUNT (₹)</td>
+      <td class="right-align">46,500</td>
+    </tr>
+    <tr>
+      <td colspan="4" class="right-align">Amount Paid by Patient (Advance)</td>
+      <td class="right-align">– 5,000</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="4" class="right-align">AMOUNT CLAIMED FROM INSURER (₹)</td>
+      <td class="right-align">41,500</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="notes-box" style="margin-top:14px;">
+  <strong>Payment Mode:</strong> Cash – ₹5,000 (Advance Deposit)<br/>
+  <strong>Remaining Balance:</strong> ₹41,500 to be settled by TPA / Insurance Company<br/>
+  <strong>GSTIN of Hospital:</strong> 29AABCA1234F1Z5<br/>
+  <strong>Note:</strong> This is a computer-generated invoice. No physical signature required.
+</div>
+
+<div class="sig-row">
+  <div class="sig-box"><div class="sig-line">Patient Signature<br/>Rajesh Kumar Sharma</div></div>
+  <div class="sig-box"><div class="sig-line">Billing Department<br/>Apollo Hospitals</div></div>
+  <div class="sig-box"><div class="sig-line">Hospital Seal &amp; Date<br/>16-04-2026</div></div>
+</div>
+
+<p style="text-align:center; font-size:10px; color:#aaa; margin-top:24px;">
+  Apollo Hospitals, Bangalore — Final Invoice | Confidential Medical Record | Retain for TPA Submission
+</p>
+
+</div><!-- page-break -->
+</body>
+</html>

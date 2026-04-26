@@ -1,0 +1,71 @@
+POST: http://localhost:8080/api/v1/auth/patient/register
+{
+  "patientName": "John Doe",
+  "email": "amei.wrinkle@allfreemail.net",
+  "phoneNumber": "9876543220",
+  "password": "Password@123",
+  "dateOfBirth": "1990-01-01",
+  "gender": "MALE",
+  "address": "123 Health Ave, NY"
+}
+
+PATCH: http://localhost:8080/api/v1/auth/patient/verify
+{
+  "email": "amei.wrinkle@allfreemail.net",
+  "otp" : "222645"
+}
+
+GET: http://localhost:8080/api/v1/auth/login
+{
+  "email": "amei.wrinkle@allfreemail.net",
+  "password": "Password@123"
+}
+
+POST: http://localhost:8080/api/v1/claims
+Authorization: Bearer token of Customer
+{
+  "policyNumber": "POL-77661234",
+  "claimedAmount": 45000.00
+}
+
+POST: http://localhost:8080/api/v1/files/upload
+Body/form-data
+claimId Text 11
+documentType Text CLAIM_FORM
+file claim_new.pdf
+
+POST: http://localhost:8080/api/v1/files/upload
+Body/form-data
+claimId Text 11
+documentType Text COMBINED_DOCUMENT
+file doc_new.pdf
+
+GET: http://localhost:8080/api/v1/claims/11
+
+POST: localhost:8080/api/v1/auth/login
+{
+  "email": "mithunlogs@gmail.com",
+  "password": "Qw3!@sPe:E1"
+}
+
+GET: localhost:8080/api/v1/claims/search?status=REVIEW&page=0&size=10
+
+POST: http://localhost:8080/api/v1/admin/claims/review
+{
+  "claimId": 11,
+  "status": "APPROVED",
+  "reviewNotes": "Documents manually verified. Hospital mismatch was a typo. Approved."
+}
+
+login as customer
+POST: http://localhost:8080/api/v1/ai/analyze/11
+
+POST: http://localhost:8080/api/v1/ai/analyze/11
+{
+  "prompt": "Summarize why this claim was initially sent to manual review."
+}
+
+GET: http://localhost:8080/api/v1/files/download/13 - documentId
+
+GET: http://localhost:8080/api/v1/claims/11/export
+

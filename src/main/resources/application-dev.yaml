@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: tpa
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+  data:
+    redis:
+      url: ${REDIS_URL}
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: tpa-group
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  ai:
+    openai:
+      api-key: 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
+      base-url: https://api.groq.com/openai/v1
+      chat:
+        options:
+          model: llama-3.3-70b-versatile
+
+server:
+  port: ${PORT}
+
+admin:
+  name: ${ADMIN_NAME}
+  email: ${ADMIN_EMAIL}
+  mobile: ${ADMIN_MOBILE}
+  password: ${ADMIN_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+file:
+  upload-dir: ./uploads
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+
+logging:
+  level:
+    root: info
+
+razorpay:
+  api:
+    key: ${RAZORPAY_KEY}
+    secret: ${RAZORPAY_SECRET}
