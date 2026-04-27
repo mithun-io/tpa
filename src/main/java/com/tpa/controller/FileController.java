@@ -22,16 +22,28 @@ public class FileController {
 
     @PostMapping("/upload")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<Map<String, Object>> uploadFile(
+    public ResponseEntity<Map<String, Object>> uploadFiles(
             @RequestParam("claimId") Long claimId,
-            @RequestParam("documentType") String documentType,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam(value = "files", required = false) java.util.List<MultipartFile> files,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "documentType", required = false) String documentType) {
             
-        ClaimDocument document = fileUploadService.uploadFile(claimId, documentType, file);
-        return ResponseEntity.ok(Map.of(
-                "message", "File uploaded successfully",
-                "document", document
-        ));
+        if (files != null && !files.isEmpty()) {
+            java.util.List<ClaimDocument> documents = fileUploadService.uploadFiles(claimId, files);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Files uploaded successfully",
+                    "documents", documents
+            ));
+        } else if (file != null) {
+            String type = (documentType != null) ? documentType : "CLAIM_FORM";
+            ClaimDocument document = fileUploadService.uploadFile(claimId, type, file);
+            return ResponseEntity.ok(Map.of(
+                    "message", "File uploaded successfully",
+                    "document", document
+            ));
+        } else {
+            throw new IllegalArgumentException("No files uploaded");
+        }
     }
 
     @GetMapping("/download/{id}")
@@ -55,6 +67,10 @@ public class FileController {
             map.put("id", doc.getId());
             map.put("fileName", doc.getFileName());
             map.put("type", doc.getType().name());
+            map.put("fileType", doc.getFileType());
+            map.put("validationStatus", doc.getValidationStatus());
+            map.put("validationIssues", doc.getValidationIssues());
+            map.put("confidenceScore", doc.getConfidenceScore());
             return map;
         }).toList();
         return ResponseEntity.ok(response);

@@ -23,7 +23,10 @@ public class ClaimStateMachine {
             case PENDING -> targetStatus == ClaimStatus.PROCESSING || targetStatus == ClaimStatus.REJECTED;
             case PROCESSING -> targetStatus == ClaimStatus.PENDING || targetStatus == ClaimStatus.REVIEW || targetStatus == ClaimStatus.REJECTED;
             case REVIEW -> targetStatus == ClaimStatus.APPROVED || targetStatus == ClaimStatus.REJECTED;
-            case APPROVED, REJECTED -> false; // Terminal states
+            case APPROVED -> targetStatus == ClaimStatus.PAYMENT_PENDING;
+            case PAYMENT_PENDING -> targetStatus == ClaimStatus.SETTLED || targetStatus == ClaimStatus.FAILED;
+            case REJECTED, SETTLED, FAILED -> false; // Terminal states
+            default -> false;
         };
 
         if (!isValid) {

@@ -41,4 +41,7 @@ public class ClaimDocument {
 
     @Column(name = "confidence_score")
     private Integer confidenceScore;
+
+    @Column(name = "file_type")
+    private String fileType; // PDF or IMAGE
 }

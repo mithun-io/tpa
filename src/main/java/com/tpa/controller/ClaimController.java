@@ -79,8 +79,11 @@ public class ClaimController {
 
     @GetMapping("/{id}/audits")
     public ResponseEntity<List<com.tpa.entity.ClaimAudit>> getClaimAudits(@PathVariable Long id) {
-        // Technically should be in a service, but for brevity we inject repository or call a service.
-        // I will implement it in ClaimService.
+        return ResponseEntity.ok(claimService.getClaimAudits(id));
+    }
+
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<List<com.tpa.entity.ClaimAudit>> getClaimTimeline(@PathVariable Long id) {
         return ResponseEntity.ok(claimService.getClaimAudits(id));
     }
 }

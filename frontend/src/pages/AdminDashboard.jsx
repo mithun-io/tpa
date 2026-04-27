@@ -7,7 +7,8 @@ import {
   CheckCircle, XCircle, Clock, FileText, Search, Filter,
   ChevronLeft, ChevronRight, Bot, X, ShieldCheck, ShieldX,
   ShieldAlert, AlertTriangle, RefreshCw, Eye, Users, Shield,
-  Lock, Unlock, Activity, Terminal, Truck, Brain, Loader2, Bell
+  Lock, Unlock, Activity, Terminal, Truck, Brain, Loader2, Bell,
+  CreditCard
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -628,6 +629,14 @@ const AdminDashboard = () => {
                                   <XCircle className="w-3.5 h-3.5" /> Reject
                                 </button>
                               </>
+                            )}
+                            {claim.status === 'APPROVED' && (
+                              <button 
+                                onClick={() => navigate(`/claims/${claim.id}`)} 
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-blue-600/20"
+                              >
+                                <CreditCard className="w-3.5 h-3.5" /> Release Payment
+                              </button>
                             )}
                           </div>
                         </td>

@@ -44,6 +44,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final ClaimStateMachine claimStateMachine;
     private final CarrierRepository carrierRepository;
     private final ProducerService producerService;
+    private final com.tpa.repository.ClaimAuditRepository claimAuditRepository;
 
     @Override
     public ClaimResponse createClaim(ClaimDataRequest request, String username) {
@@ -157,8 +158,6 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Override
     public List<com.tpa.entity.ClaimAudit> getClaimAudits(Long claimId) {
-        return ((com.tpa.repository.ClaimAuditRepository) org.springframework.web.context.support.WebApplicationContextUtils
-            .getWebApplicationContext(((org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getRequest().getServletContext())
-            .getBean(com.tpa.repository.ClaimAuditRepository.class)).findByClaimIdOrderByChangedAtDesc(claimId);
+        return claimAuditRepository.findByClaimIdOrderByChangedAtDesc(claimId);
     }
 }

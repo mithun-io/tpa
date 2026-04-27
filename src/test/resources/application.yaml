@@ -1,3 +1,29 @@
+razorpay:
+  key: rzp_test_SBtja63fMZx3Fu
+  secret: wbXx33gyvoV22sJZBJ2VSD7h
+jwt:
+  secret: 6DWahQs8j5csH6afe3ZDJdmejkkw7Op78d1fNRQFcQiEMxnhV5XdklgEe6sixK5Hr9IFvjgJDAGJCPGneYgqcA==
+  expiration: 8400000
 spring:
-  profiles:
-    active: "test"
+  ai:
+    openai:
+      api-key: mock-key
+      base-url: https://api.openai.com
+  mail:
+    host: localhost
+    port: 25
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+admin:
+  name: mithun
+  email: mithun-io@outlook.com
+  mobile: 8904608330
+  password: Qw3!@sPe:E1
+file:
+  upload-dir: ./uploads-test
+server:
+  port: 8081

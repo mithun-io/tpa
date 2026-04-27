@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getClaimById, exportClaimReport, getClaimDocuments, getClaimAudits, analyzeClaimAI, generateClaimSummary } from '../api/claim.service';
+import { 
+  getClaimById, 
+  exportClaimReport, 
+  getClaimDocuments, 
+  getClaimAudits, 
+  analyzeClaimAI, 
+  generateClaimSummary,
+  createPaymentOrder,
+  verifyPayment,
+  getPaymentForClaim
+} from '../api/claim.service';
 import axiosInstance from '../api/axios';
 import StatusBadge from '../components/StatusBadge';
 import Loader from '../components/Loader';
@@ -11,8 +21,10 @@ import {
   ArrowLeft, Download, Bot, FileText, Calendar, DollarSign,
   Activity, User, Building2, Stethoscope, CheckCircle, Clock,
   XCircle, AlertTriangle, ShieldCheck, ShieldX, ShieldAlert,
-  Send, History, Columns, Minimize2, ZoomIn, ZoomOut, RefreshCcw, Sparkles
+  Send, History, Columns, Minimize2, ZoomIn, ZoomOut, RefreshCcw, Sparkles,
+  CreditCard, Wallet, Banknote
 } from 'lucide-react';
+import ClaimTimeline from '../components/ClaimTimeline';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -23,7 +35,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 /* ─── Status Timeline ─────────────────────────────────────── */
-const STATUS_STEPS = ['PENDING', 'PROCESSING', 'REVIEW', 'APPROVED'];
+const STATUS_STEPS = ['PENDING', 'PROCESSING', 'REVIEW', 'APPROVED', 'PAYMENT_PENDING', 'SETTLED'];
 
 const StatusTimeline = ({ currentStatus }) => {
   const isRejected = currentStatus === 'REJECTED';
@@ -59,15 +71,16 @@ const StatusTimeline = ({ currentStatus }) => {
           })}
           <div className="flex flex-col items-center gap-2.5 flex-1">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${
-              isRejected ? 'bg-red-500 border-red-400 text-white shadow-red-500/20' :
-              currentStatus === 'APPROVED' ? 'bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20' :
+              currentStatus === 'SETTLED' ? 'bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20' :
+              currentStatus === 'APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
               'bg-slate-800 border-slate-600 text-slate-500'
             }`}>
-              {isRejected ? <XCircle className="w-5 h-5" /> : currentStatus === 'APPROVED' ? <CheckCircle className="w-5 h-5" /> : <Clock className="w-4 h-4" />}
+              {currentStatus === 'SETTLED' ? <CheckCircle className="w-5 h-5" /> : <Banknote className="w-4 h-4" />}
             </div>
             <span className={`text-xs font-semibold text-center ${
-              isRejected ? 'text-red-400' : currentStatus === 'APPROVED' ? 'text-emerald-400' : 'text-slate-500'
-            }`}>{isRejected ? 'Rejected' : 'Approved'}</span>
+              currentStatus === 'SETTLED' ? 'text-emerald-400' : 
+              currentStatus === 'APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'text-blue-400' : 'text-slate-500'
+            }`}>Settled</span>
           </div>
         </div>
       </div>
@@ -297,6 +310,7 @@ const HealthScoreMeter = ({ score, riskLevel }) => {
 const DocumentViewer = ({ claimId }) => {
   const [docs, setDocs] = useState([]);
   const [activeDocUrl, setActiveDocUrl] = useState(null);
+  const [activeDocType, setActiveDocType] = useState(null); // 'PDF' or 'IMAGE'
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
@@ -306,11 +320,12 @@ const DocumentViewer = ({ claimId }) => {
     getClaimDocuments(claimId).then(data => setDocs(data || [])).catch(console.error);
   }, [claimId]);
 
-  const loadDocument = async (docId) => {
+  const loadDocument = async (docId, fileType) => {
     try {
       const response = await axiosInstance.get(`/files/download/${docId}`, { responseType: 'blob' });
       const blobUrl = URL.createObjectURL(response.data);
       setActiveDocUrl(blobUrl);
+      setActiveDocType(fileType || 'PDF');
       setPageNumber(1);
     } catch (e) {
       toast.error("Failed to load document");
@@ -380,7 +395,7 @@ const DocumentViewer = ({ claimId }) => {
                   </div>
                 )}
                 
-                <button onClick={() => loadDocument(doc.id)} className="mt-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-bold text-white transition-colors">
+                <button onClick={() => loadDocument(doc.id, doc.fileType)} className="mt-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-bold text-white transition-colors">
                   View Document
                 </button>
               </div>
@@ -397,16 +412,22 @@ const DocumentViewer = ({ claimId }) => {
                 {doc.type}
               </button>
             ))}
-            <button onClick={() => setActiveDocUrl(null)} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-xs ml-auto">
+            <button onClick={() => { setActiveDocUrl(null); setActiveDocType(null); }} className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-xs ml-auto">
               Close Viewer
             </button>
           </div>
           <div className="overflow-auto border border-slate-700 rounded shadow-2xl max-h-[800px] w-full flex justify-center bg-slate-800">
-            <Document file={activeDocUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)} loading={<Loader message="Loading PDF..." />}>
-              <Page pageNumber={pageNumber} scale={scale} renderTextLayer={false} renderAnnotationLayer={false} />
-            </Document>
+            {activeDocType === 'PDF' ? (
+              <Document file={activeDocUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)} loading={<Loader message="Loading PDF..." />}>
+                <Page pageNumber={pageNumber} scale={scale} renderTextLayer={false} renderAnnotationLayer={false} />
+              </Document>
+            ) : (
+              <div className="p-4 flex flex-col items-center">
+                <img src={activeDocUrl} alt="Document" className="max-w-full rounded-lg shadow-lg" style={{ transform: `scale(${scale})` }} />
+              </div>
+            )}
           </div>
-          {numPages > 1 && (
+          {activeDocType === 'PDF' && numPages > 1 && (
             <div className="flex gap-4 mt-4 items-center">
               <button disabled={pageNumber <= 1} onClick={() => setPageNumber(p => p - 1)} className="px-3 py-1 bg-slate-700 rounded disabled:opacity-50 text-white text-sm">Prev</button>
               <span className="text-slate-400 text-sm">Page {pageNumber} of {numPages}</span>
@@ -419,32 +440,119 @@ const DocumentViewer = ({ claimId }) => {
   );
 };
 
-/* ─── Audit Timeline ──────────────────────────────────────── */
-const AuditTimeline = ({ claimId }) => {
-  const [audits, setAudits] = useState([]);
-  useEffect(() => {
-    getClaimAudits(claimId).then(data => setAudits(data || [])).catch(console.error);
-  }, [claimId]);
+/* ─── Payment Release Section ─────────────────────────────── */
+const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
+  const [loading, setLoading] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
 
-  if (audits.length === 0) return null;
+  useEffect(() => {
+    if (claim.status === 'SETTLED' || claim.status === 'PAYMENT_PENDING') {
+      getPaymentForClaim(claim.id).then(setPaymentData).catch(() => {});
+    }
+  }, [claim.id, claim.status]);
+
+  const handleReleasePayment = async () => {
+    setLoading(true);
+    const toastId = toast.loading('Initializing Razorpay Secure Checkout...');
+    
+    try {
+      // Step 1: Create Order on Backend
+      const order = await createPaymentOrder(claim.id, claim.amount);
+      
+      // Step 2: Configure Razorpay Options
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: "NextGen TPA Systems",
+        description: `Settlement for Claim #${claim.id}`,
+        image: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+        order_id: order.orderId,
+        handler: async function (response) {
+          toast.loading('Verifying Payment Signature...', { id: toastId });
+          try {
+            await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            toast.success('Claim Settled Successfully!', { id: toastId });
+            onPaymentSuccess();
+          } catch (err) {
+            toast.error('Payment Verification Failed', { id: toastId });
+          }
+        },
+        prefill: {
+          name: claim.patientName,
+          email: "customer@example.com",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+            toast.dismiss(toastId);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error('Payment Failed: ' + response.error.description);
+        setLoading(false);
+      });
+      rzp.open();
+      
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to initiate payment');
+      setLoading(false);
+    }
+  };
+
+  if (claim.status === 'SETTLED') {
+    return (
+      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-500/20 rounded-full">
+            <ShieldCheck className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-emerald-400">Claim Settled</h3>
+            <p className="text-xs text-slate-400 mt-1">Funds have been successfully released to the beneficiary.</p>
+          </div>
+        </div>
+        {paymentData && (
+          <div className="text-right">
+            <p className="text-xs text-slate-500 font-medium">Txn ID: {paymentData.razorpayPaymentId}</p>
+            <p className="text-sm font-bold text-slate-200 mt-1">{paymentData.amount} {paymentData.currency}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (claim.status !== 'APPROVED' && claim.status !== 'PAYMENT_PENDING') return null;
 
   return (
-    <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
-      <h2 className="text-base font-bold text-slate-100 mb-6 flex items-center gap-2">
-        <History className="w-5 h-5 text-purple-400" /> Audit Trail
-      </h2>
-      <div className="space-y-4 pl-4 border-l-2 border-slate-700">
-        {audits.map(audit => (
-          <div key={audit.id} className="relative pl-4">
-            <div className="absolute -left-[21px] top-1 w-3 h-3 bg-purple-500 rounded-full border-2 border-slate-800"></div>
-            <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{new Date(audit.changedAt).toLocaleString()}</p>
-            <p className="text-sm text-slate-200 mt-0.5">
-              <span className="font-bold text-blue-400">{audit.changedBy}</span> changed status from <span className="font-medium bg-slate-700 px-1.5 py-0.5 rounded text-[10px]">{audit.previousStatus || 'NONE'}</span> to <span className="font-medium bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-[10px]">{audit.newStatus}</span>
-            </p>
-            {audit.notes && <p className="text-xs text-slate-500 italic mt-1">"{audit.notes}"</p>}
-          </div>
-        ))}
+    <div className="bg-blue-600/10 border border-blue-500/20 rounded-xl p-6 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <div className="p-3 bg-blue-600/20 rounded-full">
+          <Banknote className="w-6 h-6 text-blue-400" />
+        </div>
+        <div>
+          <h3 className="font-bold text-blue-400">Ready for Settlement</h3>
+          <p className="text-xs text-slate-400 mt-1">Claim approved. Release {claim.amount} USD via Razorpay.</p>
+        </div>
       </div>
+      <button
+        onClick={handleReleasePayment}
+        disabled={loading}
+        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+      >
+        <CreditCard className="w-4 h-4" />
+        {loading ? 'Processing...' : 'Release Payment'}
+      </button>
     </div>
   );
 };
@@ -544,6 +652,8 @@ const ClaimDetail = () => {
              <HealthScoreMeter score={claim.healthScore} riskLevel={claim.riskLevel} />
           )}
 
+          <PaymentReleaseSection claim={claim} onPaymentSuccess={fetchClaimDetails} />
+
           <SmartSummaryCard claim={claim} onRegenerate={handleRegenerateSummary} />
 
           {/* Claim Info */}
@@ -578,8 +688,8 @@ const ClaimDetail = () => {
           {/* Document Viewer */}
           <DocumentViewer claimId={claim.id} />
           
-          {/* Audit Timeline */}
-          <AuditTimeline claimId={claim.id} />
+          {/* Smart Claim Timeline */}
+          <ClaimTimeline claimId={claim.id} currentStatus={claim.status} />
 
         </div>
 

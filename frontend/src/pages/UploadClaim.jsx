@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { createClaim, uploadClaimDocument, validateClaimAI } from '../api/claim.service';
+import { createClaim, uploadMultipleDocuments, validateClaimAI } from '../api/claim.service';
 import Loader from '../components/Loader';
 import { UploadCloud, File, X, CheckCircle, Bot, ShieldCheck, ShieldAlert, ShieldX, AlertTriangle, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -146,8 +146,7 @@ const UploadClaim = () => {
     diagnosis: '', billNumber: '', billDate: ''
   });
 
-  const [claimFormFile, setClaimFormFile] = useState(null);
-  const [combinedDocFile, setCombinedDocFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -201,14 +200,29 @@ const UploadClaim = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleFileUpload = async (e) => {
     e.preventDefault();
-    if (!claimFormFile || !combinedDocFile) {
-      toast.error('Please select both required files');
+    
+    if (selectedFiles.length === 0) {
+      toast.error('Please select at least one file');
+      return;
+    }
+
+    const hasPdf = selectedFiles.some(file => file.type === "application/pdf");
+    if (!hasPdf) {
+      toast.error("Please upload at least one PDF document");
       return;
     }
     
-    // If already uploaded and validated, just navigate
     if (validationResults) {
       navigate(`/claims/${createdClaimId}`);
       return;
@@ -216,13 +230,12 @@ const UploadClaim = () => {
 
     try {
       setLoading(true);
-      const res1 = await uploadClaimDocument(createdClaimId, 'CLAIM_FORM', claimFormFile);
-      const res2 = await uploadClaimDocument(createdClaimId, 'COMBINED_DOCUMENT', combinedDocFile);
+      const response = await uploadMultipleDocuments(createdClaimId, selectedFiles);
       
-      setValidationResults([
-        { type: 'Claim Form', ...res1.document },
-        { type: 'Combined Medical Document', ...res2.document }
-      ]);
+      setValidationResults(response.documents.map(doc => ({
+        type: doc.fileType === 'PDF' ? 'PDF Document' : 'Image Attachment',
+        ...doc
+      })));
       
       toast.success('Files uploaded and AI validation complete!');
     } catch (error) {
@@ -232,36 +245,56 @@ const UploadClaim = () => {
     }
   };
 
-  const renderFileUploader = (label, fileState, setFileState) => (
+  const renderMultiFileUploader = () => (
     <div className="mt-6">
-      <label className="block text-sm font-bold text-slate-300 mb-2.5">{label}</label>
-      <div className={`flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-xl transition-all duration-200 ${fileState ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600'}`}>
-        <div className="space-y-2 text-center">
-          {fileState ? (
-            <div className="flex flex-col items-center">
-              <CheckCircle className="mx-auto h-12 w-12 text-emerald-400 mb-3 drop-shadow-md" />
-              <div className="flex items-center text-sm text-emerald-300 font-semibold bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20">
-                <File className="w-4 h-4 mr-2 text-emerald-400" />{fileState.name}
-                <button type="button" onClick={() => setFileState(null)} className="ml-3 text-red-400 hover:text-red-300 bg-red-500/10 p-1 rounded-md transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
+      <label className="block text-sm font-bold text-slate-300 mb-2.5">
+        Upload Documents (At least one PDF mandatory)
+      </label>
+      <div className={`flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-xl transition-all duration-200 border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600`}>
+        <div className="space-y-4 text-center w-full">
+          <div className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center mx-auto mb-2">
+            <UploadCloud className="h-6 w-6 text-blue-400" />
+          </div>
+          <div className="flex text-sm text-slate-400 justify-center">
+            <label className="relative cursor-pointer bg-transparent font-semibold text-blue-400 hover:text-blue-300 focus-within:outline-none transition-colors">
+              <span>Select files</span>
+              <input 
+                type="file" 
+                className="sr-only" 
+                multiple 
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={handleFileChange} 
+              />
+            </label>
+            <p className="pl-1.5">to upload</p>
+          </div>
+          <p className="text-xs text-slate-500 font-medium tracking-wide">PDF (Mandatory), PNG, JPG up to 10MB</p>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-6 text-left space-y-2">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">Selected Files ({selectedFiles.length})</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {selectedFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-lg group">
+                    <div className="flex items-center min-w-0">
+                      {file.type === 'application/pdf' ? (
+                        <File className="w-4 h-4 text-red-400 flex-shrink-0 mr-2" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mr-2" />
+                      )}
+                      <span className="text-xs text-slate-300 truncate font-medium">{file.name}</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveFile(idx)}
+                      className="text-slate-500 hover:text-red-400 p-1 rounded-md transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
-          ) : (
-            <>
-              <div className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <UploadCloud className="h-6 w-6 text-blue-400" />
-              </div>
-              <div className="flex text-sm text-slate-400 justify-center">
-                <label className="relative cursor-pointer bg-transparent font-semibold text-blue-400 hover:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 transition-colors">
-                  <span>Upload a file</span>
-                  <input type="file" className="sr-only" accept=".pdf,.jpg,.png"
-                    onChange={(e) => { if (e.target.files?.[0]) setFileState(e.target.files[0]); }} />
-                </label>
-                <p className="pl-1.5">or drag and drop</p>
-              </div>
-              <p className="text-xs text-slate-500 mt-2 font-medium tracking-wide">PDF, PNG, JPG up to 10MB</p>
-            </>
           )}
         </div>
       </div>
@@ -363,8 +396,7 @@ const UploadClaim = () => {
             </div>
             
             <div className="space-y-2">
-              {renderFileUploader('1. Claim Form (Required)', claimFormFile, setClaimFormFile)}
-              {renderFileUploader('2. Combined Medical Documents (Bills, Reports) (Required)', combinedDocFile, setCombinedDocFile)}
+              {renderMultiFileUploader()}
             </div>
             
             {validationResults && (
@@ -428,7 +460,7 @@ const UploadClaim = () => {
                 className="bg-transparent border border-slate-600 hover:bg-slate-700 text-slate-300 px-6 py-3 rounded-xl font-bold text-sm transition-all">
                 Skip for now
               </button>
-              <button type="submit" disabled={loading || !claimFormFile || !combinedDocFile}
+              <button type="submit" disabled={loading || selectedFiles.length === 0}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center shadow-lg shadow-blue-900/30">
                 {loading ? <><span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white mr-2" /> Uploading...</> : (validationResults ? 'Finish' : 'Upload & Validate')}
               </button>

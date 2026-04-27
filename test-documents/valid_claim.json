@@ -1,0 +1,27 @@
+{
+  "policyNumber": "POL-US-9876-1234",
+  "patientName": "Michael T. Anderson",
+  "patientAge": 45,
+  "patientGender": "Male",
+  "hospitalName": "City Care General Hospital",
+  "hospitalAddress": "1200 Healthcare Blvd, Metro City, NY 10001",
+  "admissionDate": "2026-04-10",
+  "dischargeDate": "2026-04-15",
+  "doctorName": "Dr. Sarah Jenkins",
+  "roomNumber": "402-B",
+  "claimType": "Reimbursement",
+  "diagnosis": "Acute Appendicitis - Post Appendectomy",
+  "claimedAmount": 4800.0,
+  "totalBillAmount": 4800.0,
+  "currency": "USD",
+  "documents": [
+    {
+      "type": "CLAIM_FORM",
+      "fileName": "claim_form_valid.pdf"
+    },
+    {
+      "type": "HOSPITAL_BILL",
+      "fileName": "hospital_bill_valid.pdf"
+    }
+  ]
+}

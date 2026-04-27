@@ -5,5 +5,8 @@ public enum ClaimStatus {
     PROCESSING,
     REVIEW,
     APPROVED,
-    REJECTED
+    REJECTED,
+    PAYMENT_PENDING,
+    SETTLED,
+    FAILED
 }

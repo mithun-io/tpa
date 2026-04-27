@@ -29,6 +29,21 @@ export const uploadClaimDocument = async (claimId, documentType, file) => {
   return response.data;
 };
 
+export const uploadMultipleDocuments = async (claimId, files) => {
+  const formData = new FormData();
+  formData.append('claimId', claimId);
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+
+  const response = await axiosInstance.post('/files/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 export const getClaimDocuments = async (claimId) => {
   const response = await axiosInstance.get(`/files/claim/${claimId}`);
   return response.data;
@@ -83,5 +98,29 @@ export const getCarrierFraudDashboard = async () => {
 
 export const markClaimAsSafe = async (claimId) => {
   const response = await axiosInstance.patch(`/fraud/admin/claims/${claimId}/safe`);
+  return response.data;
+};
+
+// ── Payment APIs ──────────────────────────────────────────────────────────────
+
+export const createPaymentOrder = async (claimId, amount) => {
+  const response = await axiosInstance.post('/payments/create-order', { claimId, amount });
+  return response.data;
+};
+
+export const verifyPayment = async (payload) => {
+  const response = await axiosInstance.post('/payments/verify', payload);
+  return response.data;
+};
+
+export const getPaymentForClaim = async (claimId) => {
+  const response = await axiosInstance.get(`/payments/claim/${claimId}`);
+  return response.data;
+};
+
+// ── Timeline APIs ─────────────────────────────────────────────────────────────
+
+export const getClaimTimeline = async (claimId) => {
+  const response = await axiosInstance.get(`/claims/${claimId}/timeline`);
   return response.data;
 };

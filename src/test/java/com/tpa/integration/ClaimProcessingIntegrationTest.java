@@ -12,6 +12,7 @@ import com.tpa.enums.Gender;
 import com.tpa.enums.UserRole;
 import com.tpa.enums.UserStatus;
 import com.tpa.repository.CarrierRepository;
+import com.tpa.repository.ClaimAuditRepository;
 import com.tpa.repository.ClaimDocumentRepository;
 import com.tpa.repository.ClaimRepository;
 import com.tpa.repository.RefreshTokenRepository;
@@ -55,6 +56,7 @@ class ClaimProcessingIntegrationTest {
     @Autowired private ClaimDocumentRepository claimDocumentRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CarrierRepository carrierRepository;
+    @Autowired private ClaimAuditRepository claimAuditRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private ObjectMapper objectMapper;
 
@@ -74,6 +76,7 @@ class ClaimProcessingIntegrationTest {
                 .build();
 
         claimDocumentRepository.deleteAll();
+        claimAuditRepository.deleteAll();
         carrierRepository.deleteAll();
         claimRepository.deleteAll();
         refreshTokenRepository.deleteAll();
