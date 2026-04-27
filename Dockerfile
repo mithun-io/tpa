@@ -6,7 +6,7 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 # Give execution rights to the maven wrapper
-RUN chmod +x ./mvnw
+RUN sed -i 's/\r$//' mvnw && chmod +x ./mvnw
 # Download dependencies
 RUN ./mvnw dependency:go-offline -B
 # Copy source code

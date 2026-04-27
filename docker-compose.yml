@@ -6,18 +6,20 @@ services:
     container_name: tpa-postgres
     restart: always
     environment:
-      POSTGRES_USER: tpauser
-      POSTGRES_PASSWORD: tpapassword
-      POSTGRES_DB: tpadb
+      POSTGRES_USER: ${DB_USER:-tpauser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tpapassword}
+      POSTGRES_DB: ${DB_NAME:-tpadb}
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tpauser -d tpadb"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tpauser} -d ${DB_NAME:-tpadb}"]
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - tpa-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
@@ -27,11 +29,13 @@ services:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - tpa-network
+    volumes:
+      - redis_data:/data
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -42,13 +46,19 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - tpa-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: tpa-kafka
     restart: always
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "9092:9092"
       - "29092:29092"
@@ -60,7 +70,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
-      test: nc -z localhost 9092 || exit -1
+      test: ["CMD", "nc", "-z", "localhost", "29092"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,16 +91,47 @@ services:
       redis:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/tpadb
-      - SPRING_DATASOURCE_USERNAME=tpauser
-      - SPRING_DATASOURCE_PASSWORD=tpapassword
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      # Database
+      - DATABASE_URL=jdbc:postgresql://${DB_HOST:-postgres}:${DB_PORT:-5432}/${DB_NAME:-tpadb}
+      - DATABASE_USERNAME=${DB_USER:-tpauser}
+      - DATABASE_PASSWORD=${DB_PASSWORD:-tpapassword}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-postgres}:${DB_PORT:-5432}/${DB_NAME:-tpadb}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-tpauser}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-tpapassword}
+      # Redis
+      - REDIS_URL=redis://${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST:-redis}
+      - SPRING_DATA_REDIS_PORT=${REDIS_PORT:-6379}
+      # Kafka
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+      # Server port
+      - PORT=8080
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      # Admin credentials
+      - ADMIN_NAME=${ADMIN_NAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_MOBILE=${ADMIN_MOBILE}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      # Mail
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      # AI
       - SPRING_AI_OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Razorpay
+      - RAZORPAY_KEY=${RAZORPAY_KEY}
+      - RAZORPAY_SECRET=${RAZORPAY_SECRET}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
       - tpa-network
 
@@ -103,10 +144,15 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend-api
+      backend-api:
+        condition: service_healthy
     networks:
       - tpa-network
 
 networks:
   tpa-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
