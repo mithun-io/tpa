@@ -62,7 +62,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             document.setValidationIssues(objectMapper.writeValueAsString(validationResponse.getIssues()));
 
             if ("INVALID".equalsIgnoreCase(validationResponse.getStatus())) {
-                claim.setStatus(ClaimStatus.REVIEW);
+                claim.setStatus(ClaimStatus.UNDER_REVIEW);
                 claimRepository.save(claim);
             }
         } catch (Exception e) {
@@ -197,23 +197,29 @@ public class FileUploadServiceImpl implements FileUploadService {
 
             // AI Validation
             try {
+                log.info("Running AI validation for document: {} (Type: {})", originalFileName, docType);
                 DocumentValidationResponse validationResponse = aiClaimAssistantService.validateDocument(file, docType.name());
                 document.setValidationStatus(validationResponse.getStatus());
                 document.setConfidenceScore(validationResponse.getConfidenceScore());
                 document.setValidationIssues(objectMapper.writeValueAsString(validationResponse.getIssues()));
 
                 if ("INVALID".equalsIgnoreCase(validationResponse.getStatus())) {
-                    claim.setStatus(ClaimStatus.REVIEW);
+                    log.warn("AI Validation flagged document {} as INVALID for claim {}", originalFileName, claimId);
+                    claim.setStatus(ClaimStatus.UNDER_REVIEW);
+                } else {
+                    log.info("AI Validation passed for document {} (Score: {})", originalFileName, validationResponse.getConfidenceScore());
                 }
             } catch (Exception e) {
-                log.error("AI validation failed for file: " + originalFileName, e);
+                log.error("NON-CRITICAL: AI validation failed for file {}. Continuing with default state.", originalFileName, e);
+                document.setValidationStatus("UNKNOWN");
             }
 
             savedDocuments.add(claimDocumentRepository.save(document));
         }
 
+        // Persist any status updates from validation (e.g., moved to UNDER_REVIEW)
         claimRepository.save(claim);
-        log.info("{} documents uploaded for claim {}", savedDocuments.size(), claimId);
+        log.info("Successfully uploaded {} documents for claim {}", savedDocuments.size(), claimId);
 
         // Trigger processing synchronously if we have a PDF
         triggerRuleEngine(claim);

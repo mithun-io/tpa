@@ -50,7 +50,7 @@ public class ClaimEventProducer {
             event.put("carrierId", carrierId);
             event.put("companyName", companyName);
             event.put("email", email);
-            event.put("action", "APPROVED");
+            event.put("action", "CARRIER_APPROVED");
 
             String message = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("carrier-approved", String.valueOf(carrierId), message);

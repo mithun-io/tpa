@@ -9,15 +9,19 @@ const api = (url, method = 'GET', body) =>
   fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
     body: body ? JSON.stringify(body) : undefined }).then(r => r.json());
 
-const STATUS_COLORS = {
-  PENDING:'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  PROCESSING:'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  APPROVED:'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  REJECTED:'bg-red-500/10 text-red-400 border-red-500/20',
-  REVIEW:'bg-purple-500/10 text-purple-400 border-purple-500/20',
+const STATUS_CONFIG = {
+  'SUBMITTED': { label: 'Submitted', icon: FileText, color: 'text-slate-400', bg: 'bg-slate-400/10' },
+  'AI_VALIDATED': { label: 'AI Validated', icon: Bot, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+  'UNDER_REVIEW': { label: 'Under Review', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+  'ADMIN_APPROVED': { label: 'Admin Approved', icon: ShieldCheck, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+  'CARRIER_APPROVED': { label: 'Carrier Approved', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+  'PAYMENT_PENDING': { label: 'Payment Processing', icon: Hospital, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+  'SETTLED': { label: 'Payment Completed', icon: Banknote, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  'REJECTED': { label: 'Rejected', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-400/10' }
 };
+
 const Badge = ({ v, cls }) => <span className={`px-2 py-0.5 rounded border text-[11px] font-bold ${cls}`}>{v}</span>;
-const StatusBadge = ({ s }) => <Badge v={s} cls={STATUS_COLORS[s] || 'bg-slate-700 text-slate-400 border-slate-600'} />;
+const StatusBadge = ({ s }) => <Badge v={s} cls={STATUS_CONFIG[s] ? `${STATUS_CONFIG[s].bg} ${STATUS_CONFIG[s].color} border-current/20` : 'bg-slate-700 text-slate-400 border-slate-600'} />;
 const RiskBar = ({ score }) => {
   const pct = Math.min(100, Math.max(0, Math.round(score ?? 0)));
   const c = pct > 70 ? 'bg-red-500' : pct > 40 ? 'bg-amber-500' : 'bg-emerald-500';
@@ -238,9 +242,9 @@ export default function CarrierDashboard() {
 
   const stats = [
     { label: 'Assigned', value: claims.length, color: 'text-amber-400' },
-    { label: 'Approved', value: claims.filter(c => c.status === 'APPROVED').length, color: 'text-emerald-400' },
+    { label: 'Approved', value: claims.filter(c => ['CARRIER_APPROVED', 'SETTLED'].includes(c.status)).length, color: 'text-emerald-400' },
     { label: 'Rejected', value: claims.filter(c => c.status === 'REJECTED').length, color: 'text-red-400' },
-    { label: 'Pending',  value: claims.filter(c => c.status === 'PENDING' || c.status === 'REVIEW').length, color: 'text-blue-400' },
+    { label: 'Pending',  value: claims.filter(c => ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'PAYMENT_PENDING'].includes(c.status)).length, color: 'text-blue-400' },
   ];
 
   return (
@@ -298,7 +302,8 @@ export default function CarrierDashboard() {
               <tbody className="divide-y divide-slate-800/50">
                 {claims.map(c => {
                   const open = expanded === c.claimId;
-                  const isFinal = c.status === 'APPROVED' || c.status === 'REJECTED';
+                  const isFinal = ['CARRIER_APPROVED', 'REJECTED', 'PAYMENT_PENDING', 'SETTLED'].includes(c.status);
+                  const canAction = c.status === 'ADMIN_APPROVED';
                   return (
                     <React.Fragment key={c.claimId}>
                       <tr className="hover:bg-slate-800/30 transition-colors">
@@ -321,8 +326,8 @@ export default function CarrierDashboard() {
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Btn icon={<ShieldCheck size={13}/>} label="Validate" color="blue" loading={isAct(c.claimId,'validate')} onClick={() => act(c.claimId,'validate')}/>
-                            {!isFinal && <Btn icon={<CheckCircle size={13}/>} label="Approve" color="emerald" loading={isAct(c.claimId,'approve')} onClick={() => act(c.claimId,'approve')}/>}
-                            {!isFinal && <Btn icon={<XCircle size={13}/>} label="Reject" color="red" loading={isAct(c.claimId,'reject')} onClick={() => act(c.claimId,'reject')}/>}
+                            {canAction && <Btn icon={<CheckCircle size={13}/>} label="Approve" color="emerald" loading={isAct(c.claimId,'approve')} onClick={() => act(c.claimId,'approve')}/>}
+                            {canAction && <Btn icon={<XCircle size={13}/>} label="Reject" color="red" loading={isAct(c.claimId,'reject')} onClick={() => act(c.claimId,'reject')}/>}
                             <Btn icon={<Flag size={13}/>} label="Flag" color="amber" loading={isAct(c.claimId,'flag')} onClick={() => act(c.claimId,'flag')}/>
                             <Btn icon={<MessageSquare size={13}/>} label="Remark" color="purple" onClick={() => setRemarkId(c.claimId)}/>
                             <Btn icon={<Brain size={13}/>} label="AI" color="violet" onClick={() => setAiId(c.claimId)}/>

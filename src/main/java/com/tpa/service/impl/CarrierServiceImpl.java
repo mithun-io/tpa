@@ -34,6 +34,8 @@ public class CarrierServiceImpl implements CarrierService {
     private final ClaimRepository    claimRepository;
     private final ProducerService    producerService;
     private final com.tpa.service.NotificationService notificationService;
+    private final com.tpa.service.ClaimStateMachine claimStateMachine;
+    private final com.tpa.service.AuditLogService auditLogService;
 
     // ── Lookups ───────────────────────────────────────────────────────────
     private Carrier getCarrierByUsername(String email) {
@@ -52,7 +54,7 @@ public class CarrierServiceImpl implements CarrierService {
     }
 
     private void guardFinalState(Claim claim) {
-        if (claim.getStatus() == ClaimStatus.APPROVED || claim.getStatus() == ClaimStatus.REJECTED) {
+        if (claim.getStatus() == ClaimStatus.CARRIER_APPROVED || claim.getStatus() == ClaimStatus.REJECTED || claim.getStatus() == ClaimStatus.SETTLED) {
             throw new BadRequestException(
                     "Claim #" + claim.getId() + " is already " + claim.getStatus() + " and cannot be modified.");
         }
@@ -155,16 +157,21 @@ public class CarrierServiceImpl implements CarrierService {
     public void approveClaim(Long claimId, String username) {
         Carrier carrier = getCarrierByUsername(username);
         Claim   claim   = getClaimForCarrier(claimId, carrier);
-        guardFinalState(claim);
-        claim.setStatus(ClaimStatus.APPROVED);
+        claimStateMachine.validateTransition(claim.getStatus(), ClaimStatus.CARRIER_APPROVED);
+        ClaimStatus previousStatus = claim.getStatus();
+        
+        claim.setStatus(ClaimStatus.CARRIER_APPROVED);
         claim.setProcessedDate(LocalDateTime.now());
         claim.setReviewedBy(carrier.getCompanyName());
         claim.setReviewedAt(LocalDateTime.now());
         claimRepository.save(claim);
-        log.info("Claim {} APPROVED by carrier {}", claimId, carrier.getCompanyName());
+        
+        auditLogService.logAction(claimId, "CARRIER_APPROVAL", previousStatus, ClaimStatus.CARRIER_APPROVED);
+        log.info("Claim {} CARRIER_APPROVED by carrier {}", claimId, carrier.getCompanyName());
+        
         producerService.sendClaimNotificationEvent(ClaimNotificationEvent.builder()
                 .claimId(claim.getId()).policyNumber(claim.getPolicyNumber())
-                .customerEmail(claim.getUser().getEmail()).status(ClaimStatus.APPROVED)
+                .customerEmail(claim.getUser().getEmail()).status(ClaimStatus.CARRIER_APPROVED)
                 .message("Your claim has been APPROVED by the carrier.").build());
         // Notify all admins asynchronously
         notificationService.notifyAllAdmins(

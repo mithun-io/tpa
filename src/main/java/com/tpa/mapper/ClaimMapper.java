@@ -11,8 +11,10 @@ import java.util.List;
 public interface ClaimMapper {
 
     @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.email", target = "userEmail")
     ClaimResponse toDto(Claim claim);
 
     @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "user.email", target = "userEmail")
     List<ClaimResponse> toDtoList(List<Claim> claims);
 }

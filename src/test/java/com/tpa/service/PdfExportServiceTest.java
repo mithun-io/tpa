@@ -40,7 +40,7 @@ class PdfExportServiceTest {
         Claim claim = Claim.builder()
                 .id(1L)
                 .policyNumber("POL-12345")
-                .status(ClaimStatus.APPROVED)
+                .status(ClaimStatus.CARRIER_APPROVED)
                 .amount(10000.0)
                 .user(user)
                 .createdDate(LocalDateTime.now())
@@ -64,7 +64,7 @@ class PdfExportServiceTest {
         assertThat(textFromPage).contains("POL-12345");
         assertThat(textFromPage).contains("John Doe");
         assertThat(textFromPage).contains("City Hospital");
-        assertThat(textFromPage).contains("APPROVED");
+        assertThat(textFromPage).contains("CARRIER_APPROVED");
     }
 
     @Test

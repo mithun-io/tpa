@@ -85,12 +85,12 @@ class AdminControllerTest {
     void reviewClaim_shouldReturn200_whenAdminReviewsClaim() throws Exception {
         ClaimReviewRequest request = new ClaimReviewRequest();
         request.setClaimId(1L);
-        request.setStatus(ClaimStatus.APPROVED);
+        request.setStatus(ClaimStatus.ADMIN_APPROVED);
         request.setReviewNotes("Approved after review");
 
         ClaimResponse claimResponse = new ClaimResponse();
         claimResponse.setId(1L);
-        claimResponse.setStatus(ClaimStatus.APPROVED);
+        claimResponse.setStatus(ClaimStatus.ADMIN_APPROVED);
 
         when(adminService.reviewClaim(any(), any())).thenReturn(claimResponse);
 
@@ -98,7 +98,7 @@ class AdminControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
+                .andExpect(jsonPath("$.status").value("ADMIN_APPROVED"));
     }
 
     @Test

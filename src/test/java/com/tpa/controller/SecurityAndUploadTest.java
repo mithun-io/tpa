@@ -58,9 +58,16 @@ class SecurityAndUploadTest {
     }
 
     @Test
-    @WithMockUser(roles = "CUSTOMER")
+    @WithMockUser(username = "customer@tpa.com", roles = "CUSTOMER")
     @DisplayName("Should allow customer to access their own timeline")
     void getTimeline_Authorized_Returns200() throws Exception {
+        com.tpa.dto.response.ClaimResponse mockClaim = com.tpa.dto.response.ClaimResponse.builder()
+                .id(1L)
+                .userEmail("customer@tpa.com")
+                .build();
+        org.mockito.Mockito.when(claimService.getClaim(org.mockito.ArgumentMatchers.anyLong())).thenReturn(mockClaim);
+        org.mockito.Mockito.when(claimService.getClaimAudits(org.mockito.ArgumentMatchers.anyLong())).thenReturn(java.util.List.of());
+
         mockMvc.perform(get("/api/v1/claims/1/timeline"))
                 .andExpect(status().isOk());
     }

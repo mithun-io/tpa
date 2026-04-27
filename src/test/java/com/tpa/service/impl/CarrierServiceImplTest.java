@@ -35,6 +35,8 @@ class CarrierServiceImplTest {
     @Mock private ClaimRepository claimRepository;
     @Mock private ProducerService producerService;
     @Mock private NotificationService notificationService;
+    @Mock private com.tpa.service.ClaimStateMachine claimStateMachine;
+    @Mock private com.tpa.service.AuditLogService auditLogService;
 
     @InjectMocks
     private CarrierServiceImpl carrierService;
@@ -60,7 +62,7 @@ class CarrierServiceImplTest {
         testClaim.setId(100L);
         testClaim.setCarrier(testCarrier);
         testClaim.setUser(customer);
-        testClaim.setStatus(ClaimStatus.PENDING);
+        testClaim.setStatus(ClaimStatus.SUBMITTED);
         testClaim.setRiskScore(50.0);
         testClaim.setPolicyNumber("POL-1234");
         testClaim.setAmount(1000.0);
@@ -104,10 +106,11 @@ class CarrierServiceImplTest {
     void approveClaim_success_and_notifies_admin() {
         when(carrierRepository.findByUser_Email("carrier@tpa.com")).thenReturn(Optional.of(testCarrier));
         when(claimRepository.findById(100L)).thenReturn(Optional.of(testClaim));
+        doNothing().when(claimStateMachine).validateTransition(any(), any());
 
         carrierService.approveClaim(100L, "carrier@tpa.com");
 
-        assertThat(testClaim.getStatus()).isEqualTo(ClaimStatus.APPROVED);
+        assertThat(testClaim.getStatus()).isEqualTo(ClaimStatus.CARRIER_APPROVED);
         verify(claimRepository).save(testClaim);
         verify(producerService).sendClaimNotificationEvent(any());
         verify(notificationService).notifyAllAdmins(anyString(), anyString(), anyString());

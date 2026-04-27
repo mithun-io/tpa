@@ -85,7 +85,7 @@ const ClaimList = () => {
   }, [filters]);
 
   const isDelayed = (createdDate, status) => {
-    if (status === 'APPROVED' || status === 'REJECTED') return false;
+    if (['CARRIER_APPROVED', 'REJECTED', 'PAYMENT_PENDING', 'SETTLED'].includes(status)) return false;
     const created = new Date(createdDate).getTime();
     const now = new Date().getTime();
     return (now - created) > 24 * 60 * 60 * 1000; // > 24 hours
@@ -123,11 +123,14 @@ const ClaimList = () => {
               <label className="block text-xs font-medium text-slate-400 mb-1">Status</label>
               <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
                 <option value="">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="PROCESSING">Processing</option>
-                <option value="REVIEW">Under Review</option>
-                <option value="APPROVED">Approved</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="AI_VALIDATED">AI Validated</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="ADMIN_APPROVED">Admin Approved</option>
+                <option value="CARRIER_APPROVED">Carrier Approved</option>
                 <option value="REJECTED">Rejected</option>
+                <option value="PAYMENT_PENDING">Payment Pending</option>
+                <option value="SETTLED">Settled</option>
               </select>
             </div>
             <div>

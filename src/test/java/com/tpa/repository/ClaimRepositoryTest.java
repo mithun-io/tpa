@@ -73,7 +73,7 @@ class ClaimRepositoryTest {
 
         claim1 = Claim.builder()
                 .policyNumber("POL-001")
-                .status(ClaimStatus.PENDING)
+                .status(ClaimStatus.SUBMITTED)
                 .amount(1500.0)
                 .user(savedUser)
                 .build();
@@ -81,7 +81,7 @@ class ClaimRepositoryTest {
 
         claim2 = Claim.builder()
                 .policyNumber("POL-002")
-                .status(ClaimStatus.APPROVED)
+                .status(ClaimStatus.CARRIER_APPROVED)
                 .amount(2500.0)
                 .user(savedUser)
                 .build();
@@ -132,9 +132,9 @@ class ClaimRepositoryTest {
     // ── TC-41: Specification / Search ─────────────────────────────────────────
 
     @Test
-    @DisplayName("TC-041: Specification search by PENDING status returns correct count")
+    @DisplayName("TC-041: Specification search by SUBMITTED status returns correct count")
     void searchClaims_shouldReturnPagedResults_whenFilteringByStatus() {
-        Specification<Claim> spec = Specification.where(ClaimSpecification.hasStatus(ClaimStatus.PENDING));
+        Specification<Claim> spec = Specification.where(ClaimSpecification.hasStatus(ClaimStatus.SUBMITTED));
         Pageable pageable = PageRequest.of(0, 10);
 
         Page<Claim> page = claimRepository.findAll(spec, pageable);
@@ -196,7 +196,7 @@ class ClaimRepositoryTest {
 
         assertThat(results).isNotEmpty();
         boolean hasPending = results.stream()
-                .anyMatch(r -> r[0].toString().equals("PENDING") && ((Number) r[1]).longValue() == 1);
+                .anyMatch(r -> r[0].toString().equals("SUBMITTED") && ((Number) r[1]).longValue() == 1);
         assertThat(hasPending).isTrue();
     }
 
@@ -223,7 +223,7 @@ class ClaimRepositoryTest {
     void save_shouldPersistAllMandatoryFields() {
         Claim claim = Claim.builder()
                 .policyNumber("POL-FULL")
-                .status(ClaimStatus.PENDING)
+                .status(ClaimStatus.SUBMITTED)
                 .amount(3000.0)
                 .patientName("John Doe")
                 .hospitalName("City Hospital")

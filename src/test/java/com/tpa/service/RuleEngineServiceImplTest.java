@@ -47,7 +47,7 @@ public class RuleEngineServiceImplTest {
     public void testEvaluateClaim_Approved() {
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(buildFullyValidRequest());
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.AI_VALIDATED);
         assertThat(response.getReasons()).contains("System auto-verified: Pending admin approval");
     }
 
@@ -58,7 +58,7 @@ public class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.PENDING);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.SUBMITTED);
         assertThat(response.getReasons()).contains("Claim form is missing");
     }
 
@@ -69,7 +69,7 @@ public class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Policy number is missing");
     }
 }

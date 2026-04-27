@@ -43,12 +43,12 @@ class RuleEngineServiceImplTest {
     // ========== Positive Cases ==========
 
     @Test
-    void evaluateClaim_shouldReturnReview_whenAllRulesPass() {
+    void evaluateClaim_shouldReturnAiValidated_whenAllRulesPass() {
         ClaimDataRequest request = buildValidRequest();
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.AI_VALIDATED);
         assertThat(response.getReasons()).contains("System auto-verified: Pending admin approval");
     }
 
@@ -61,7 +61,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.PENDING);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.SUBMITTED);
         assertThat(response.getReasons()).contains("Claim form is missing");
     }
 
@@ -72,7 +72,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.PENDING);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.SUBMITTED);
         assertThat(response.getReasons()).contains("Combined document is missing");
     }
 
@@ -96,7 +96,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Patient name mismatch across documents");
     }
 
@@ -107,7 +107,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Hospital name mismatch across documents");
     }
 
@@ -118,7 +118,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Admission date mismatch across documents");
     }
 
@@ -130,7 +130,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Claimed amount is greater than total bill amount");
     }
 
@@ -142,7 +142,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("High claim amount (> ₹50,000)");
     }
 
@@ -155,7 +155,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Possible duplicate claim detected");
     }
 
@@ -166,7 +166,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).contains("Policy number is missing");
     }
 
@@ -179,7 +179,7 @@ class RuleEngineServiceImplTest {
 
         ClaimDecisionResponse response = ruleEngineService.evaluateClaim(request);
 
-        assertThat(response.getStatus()).isEqualTo(ClaimStatus.REVIEW);
+        assertThat(response.getStatus()).isEqualTo(ClaimStatus.UNDER_REVIEW);
         assertThat(response.getReasons()).hasSizeGreaterThanOrEqualTo(3);
         assertThat(response.getReasons()).contains(
                 "Possible duplicate claim detected",

@@ -46,9 +46,9 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Should fail to create order if claim is not APPROVED")
+    @DisplayName("Should fail to create order if claim is not CARRIER_APPROVED")
     void createOrder_NonApprovedClaim_ThrowsException() {
-        Claim claim = Claim.builder().id(1L).status(ClaimStatus.PENDING).build();
+        Claim claim = Claim.builder().id(1L).status(ClaimStatus.SUBMITTED).build();
         when(claimRepository.findById(1L)).thenReturn(Optional.of(claim));
 
         CreatePaymentOrderRequest request = new CreatePaymentOrderRequest(1L, 1000.0);
@@ -56,7 +56,7 @@ class PaymentServiceTest {
         IllegalStateException ex = assertThrows(IllegalStateException.class, 
             () -> paymentService.createOrder(1L, request));
         
-        assertTrue(ex.getMessage().contains("APPROVED"));
+        assertTrue(ex.getMessage().contains("CARRIER_APPROVED"));
     }
 
     @Test

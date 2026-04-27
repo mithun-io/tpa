@@ -71,7 +71,7 @@ class ClaimControllerTest {
 
         ClaimResponse response = new ClaimResponse();
         response.setId(1L);
-        response.setStatus(ClaimStatus.PENDING);
+        response.setStatus(ClaimStatus.SUBMITTED);
 
         when(claimService.createClaim(any(), any())).thenReturn(response);
 
@@ -80,25 +80,32 @@ class ClaimControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.status").value("PENDING"));
+                .andExpect(jsonPath("$.status").value("SUBMITTED"));
     }
 
     @Test
     void getClaim_shouldReturn200_whenClaimExists() throws Exception {
         ClaimResponse response = new ClaimResponse();
         response.setId(1L);
-        response.setStatus(ClaimStatus.APPROVED);
+        response.setStatus(ClaimStatus.CARRIER_APPROVED);
+        response.setUsername("testuser");
+        response.setUserEmail("testuser@tpa.com");
 
         when(claimService.getClaim(1L)).thenReturn(response);
 
         mockMvc.perform(get("/api/v1/claims/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.status").value("APPROVED"));
+                .andExpect(jsonPath("$.status").value("CARRIER_APPROVED"));
     }
 
     @Test
     void exportClaimReport_shouldReturnPdfWithCorrectFilename_whenClaimExists() throws Exception {
+        ClaimResponse claim = new ClaimResponse();
+        claim.setId(1L);
+        claim.setUserEmail("testuser@tpa.com");
+        when(claimService.getClaim(1L)).thenReturn(claim);
+        
         byte[] pdfContent = "dummy pdf bytes".getBytes();
         when(pdfExportService.exportClaimReport(1L)).thenReturn(pdfContent);
 
@@ -114,20 +121,20 @@ class ClaimControllerTest {
     void searchClaims_shouldReturnPagedResults_whenStatusFilterApplied() throws Exception {
         ClaimResponse claim = new ClaimResponse();
         claim.setId(1L);
-        claim.setStatus(ClaimStatus.PENDING);
+        claim.setStatus(ClaimStatus.SUBMITTED);
         Page<ClaimResponse> page = new PageImpl<>(List.of(claim), org.springframework.data.domain.PageRequest.of(0, 10), 1);
 
         when(claimService.searchClaims(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/claims/search")
-                .param("status", "PENDING")
+                .param("status", "SUBMITTED")
                 .param("page", "0")
                 .param("size", "10"))
                 .andDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.content[0].status").value("SUBMITTED"))
                 .andExpect(jsonPath("$.totalElements").value(1));
     }
 
@@ -135,8 +142,12 @@ class ClaimControllerTest {
     void getAllClaims_shouldReturn200WithList_whenClaimsExist() throws Exception {
         ClaimResponse claim = new ClaimResponse();
         claim.setId(1L);
+        claim.setUserEmail("testuser@tpa.com");
 
-        when(claimService.getAllClaims()).thenReturn(List.of(claim));
+        // For non-admins, the controller calls searchClaims instead of getAllClaims
+        Page<ClaimResponse> page = new PageImpl<>(List.of(claim));
+        when(claimService.searchClaims(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/claims"))
                 .andExpect(status().isOk())

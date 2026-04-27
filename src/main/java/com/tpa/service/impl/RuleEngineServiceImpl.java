@@ -18,12 +18,12 @@ public class RuleEngineServiceImpl implements RuleEngineService {
 
         // Rule 1: Claim form missing → Pending
         if (claimData.getClaimFormPresent() == null || !claimData.getClaimFormPresent()) {
-            return new ClaimDecisionResponse(ClaimStatus.PENDING, List.of("Claim form is missing"));
+            return new ClaimDecisionResponse(ClaimStatus.SUBMITTED, List.of("Claim form is missing"));
         }
 
         // Rule 2: Combined document missing → Pending
         if (claimData.getCombinedDocumentPresent() == null || !claimData.getCombinedDocumentPresent()) {
-            return new ClaimDecisionResponse(ClaimStatus.PENDING, List.of("Combined document is missing"));
+            return new ClaimDecisionResponse(ClaimStatus.SUBMITTED, List.of("Combined document is missing"));
         }
 
         // Rule 3: Policy inactive on admission date → Reject
@@ -94,9 +94,11 @@ public class RuleEngineServiceImpl implements RuleEngineService {
 
         // Final decision logic: ALL claims must go to REVIEW for admin approval
         if (reasons.isEmpty()) {
-            reasons.add("System auto-verified: Pending admin approval");
+            org.slf4j.LoggerFactory.getLogger(RuleEngineServiceImpl.class).info("Rule Engine: Claim passed all automated checks. Decision: AI_VALIDATED");
+            return new ClaimDecisionResponse(ClaimStatus.AI_VALIDATED, List.of("System auto-verified: Pending admin approval"));
         }
         
-        return new ClaimDecisionResponse(ClaimStatus.REVIEW, reasons);
+        org.slf4j.LoggerFactory.getLogger(RuleEngineServiceImpl.class).warn("Rule Engine: Claim flagged for manual review. Reasons: {}", reasons);
+        return new ClaimDecisionResponse(ClaimStatus.UNDER_REVIEW, reasons);
     }
 }

@@ -6,11 +6,12 @@ import {
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  'PENDING': { label: 'Submitted', icon: FileText, color: 'text-slate-400', bg: 'bg-slate-400/10' },
-  'PROCESSING': { label: 'AI Validating', icon: Bot, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-  'REVIEW': { label: 'Under Review', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-  'APPROVED': { label: 'Approved', icon: ShieldCheck, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-  'PAYMENT_PENDING': { label: 'Payment Processing', icon: Hospital, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+  'SUBMITTED': { label: 'Submitted', icon: FileText, color: 'text-slate-400', bg: 'bg-slate-400/10' },
+  'AI_VALIDATED': { label: 'AI Validated', icon: Bot, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+  'UNDER_REVIEW': { label: 'Under Review', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+  'ADMIN_APPROVED': { label: 'Admin Approved', icon: ShieldCheck, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+  'CARRIER_APPROVED': { label: 'Carrier Approved', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+  'PAYMENT_PENDING': { label: 'Payment Processing', icon: Hospital, color: 'text-orange-400', bg: 'bg-orange-400/10' },
   'SETTLED': { label: 'Payment Completed', icon: Banknote, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
   'REJECTED': { label: 'Rejected', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-400/10' }
 };

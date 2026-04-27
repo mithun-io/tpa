@@ -64,7 +64,7 @@ class ClaimServiceImplTest {
         
         testClaim = Claim.builder()
                 .id(100L)
-                .status(ClaimStatus.PENDING)
+                .status(ClaimStatus.SUBMITTED)
                 .user(testUser)
                 .build();
     }
@@ -87,7 +87,7 @@ class ClaimServiceImplTest {
 
         assertThat(response.getId()).isEqualTo(100L);
         verify(claimRepository).save(any(Claim.class));
-        verify(auditLogService).logAction(eq(100L), eq("CLAIM_CREATED"), isNull(), eq(ClaimStatus.PENDING));
+        verify(auditLogService).logAction(eq(100L), eq("CLAIM_CREATED"), isNull(), eq(ClaimStatus.SUBMITTED));
     }
 
     @Test
@@ -122,21 +122,21 @@ class ClaimServiceImplTest {
     @DisplayName("TC-021: Status transitions")
     void processClaimDecision_shouldUpdateStatus_whenDecisionIsApproved() {
         ClaimDecisionResponse decision = new ClaimDecisionResponse();
-        decision.setStatus(ClaimStatus.APPROVED);
+        decision.setStatus(ClaimStatus.CARRIER_APPROVED);
 
         when(claimRepository.findById(100L)).thenReturn(Optional.of(testClaim));
         doNothing().when(claimStateMachine).validateTransition(any(), any());
         
         claimService.processClaimDecision(100L, decision);
 
-        assertThat(testClaim.getStatus()).isEqualTo(ClaimStatus.APPROVED);
+        assertThat(testClaim.getStatus()).isEqualTo(ClaimStatus.CARRIER_APPROVED);
         verify(claimRepository, times(2)).save(testClaim); 
     }
 
     @Test
     @DisplayName("TC-022: Prevent invalid transition")
     void processClaimDecision_shouldSkip_whenAlreadyInTerminalState() {
-        testClaim.setStatus(ClaimStatus.APPROVED);
+        testClaim.setStatus(ClaimStatus.CARRIER_APPROVED);
         ClaimDecisionResponse decision = new ClaimDecisionResponse();
 
         when(claimRepository.findById(100L)).thenReturn(Optional.of(testClaim));
@@ -154,7 +154,7 @@ class ClaimServiceImplTest {
         when(claimRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(Pageable.class))).thenReturn(claimPage);
         when(claimMapper.toDto(any())).thenReturn(new ClaimResponse());
 
-        Page<ClaimResponse> response = claimService.searchClaims(ClaimStatus.REVIEW, null, null, null, null, null, PageRequest.of(0, 10));
+        Page<ClaimResponse> response = claimService.searchClaims(ClaimStatus.UNDER_REVIEW, null, null, null, null, null, PageRequest.of(0, 10));
 
         assertThat(response.getContent()).hasSize(1);
     }

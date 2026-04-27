@@ -176,10 +176,10 @@ public class AdminServiceImpl implements AdminService {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new NoResourceFoundException("claim not found"));
 
-        claimStateMachine.validateTransition(claim.getStatus(), ClaimStatus.APPROVED);
+        claimStateMachine.validateTransition(claim.getStatus(), ClaimStatus.ADMIN_APPROVED);
 
         ClaimStatus previousStatus = claim.getStatus();
-        claim.setStatus(ClaimStatus.APPROVED);
+        claim.setStatus(ClaimStatus.ADMIN_APPROVED);
         claim.setProcessedDate(LocalDateTime.now());
         claim.setReviewedBy(principal.getName());
         claim.setReviewedAt(LocalDateTime.now());
@@ -188,13 +188,13 @@ public class AdminServiceImpl implements AdminService {
         claimRepository.save(claim);
         log.info("Admin {} APPROVED claim {}", principal.getName(), claim.getId());
 
-        auditLogService.logAction(claim.getId(), "ADMIN_APPROVED", previousStatus, ClaimStatus.APPROVED);
+        auditLogService.logAction(claim.getId(), "ADMIN_APPROVED", previousStatus, ClaimStatus.ADMIN_APPROVED);
 
         ClaimNotificationEvent notificationEvent = ClaimNotificationEvent.builder()
                 .claimId(claim.getId())
                 .policyNumber(claim.getPolicyNumber())
                 .customerEmail(claim.getUser().getEmail())
-                .status(ClaimStatus.APPROVED)
+                .status(ClaimStatus.ADMIN_APPROVED)
                 .message("Your claim has been APPROVED. Notes: " + reason)
                 .build();
         producerService.sendClaimNotificationEvent(notificationEvent);

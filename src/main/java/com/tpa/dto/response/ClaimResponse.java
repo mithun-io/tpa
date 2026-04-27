@@ -43,4 +43,5 @@ public class ClaimResponse {
 
     // Submitter info
     private String username;
+    private String userEmail;
 }

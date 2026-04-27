@@ -1,11 +1,14 @@
 import React from 'react';
 
 const STATUS_MAP = {
-  APPROVED:   { label: 'Approved',    cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  REJECTED:   { label: 'Rejected',    cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  PENDING:    { label: 'Pending',     cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  PROCESSING: { label: 'Processing',  cls: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-  REVIEW:     { label: 'Under Review',cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  SUBMITTED:        { label: 'Submitted',        cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  AI_VALIDATED:     { label: 'AI Validated',     cls: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+  UNDER_REVIEW:     { label: 'Under Review',     cls: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  ADMIN_APPROVED:   { label: 'Admin Approved',   cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  CARRIER_APPROVED: { label: 'Carrier Approved', cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+  REJECTED:         { label: 'Rejected',         cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
+  PAYMENT_PENDING:  { label: 'Payment Pending',  cls: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+  SETTLED:          { label: 'Settled',          cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
 };
 
 const StatusBadge = ({ status }) => {

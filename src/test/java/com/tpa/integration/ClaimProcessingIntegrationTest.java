@@ -138,7 +138,7 @@ class ClaimProcessingIntegrationTest {
 
     @Test
     @WithMockUser(username = "customer1@tpa.com", roles = {"CUSTOMER"})
-    @DisplayName("TC-INT-01: Customer can create a claim and it persists with PENDING status")
+    @DisplayName("TC-INT-01: Customer can create a claim and it persists with SUBMITTED status")
     void createClaim_shouldPersistWithPendingStatus_whenCustomerCreates() throws Exception {
         ClaimDataRequest req = new ClaimDataRequest();
         req.setClaimedAmount(8000.0);
@@ -148,13 +148,13 @@ class ClaimProcessingIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
                 .andExpect(jsonPath("$.id").exists())
                 .andReturn().getResponse().getContentAsString();
 
         Long claimId = objectMapper.readTree(body).get("id").asLong();
         Claim saved = claimRepository.findById(claimId).orElseThrow();
-        assertThat(saved.getStatus()).isEqualTo(ClaimStatus.PENDING);
+        assertThat(saved.getStatus()).isEqualTo(ClaimStatus.SUBMITTED);
     }
 
     // ── TC-INT-02: Role-based access on /claims ────────────────────────────────
@@ -274,7 +274,7 @@ class ClaimProcessingIntegrationTest {
         // Persist a claim directly
         claimRepository.save(Claim.builder()
                 .policyNumber("POL-MINE")
-                .status(ClaimStatus.PENDING)
+                .status(ClaimStatus.SUBMITTED)
                 .amount(1000.0)
                 .user(testCustomer)
                 .build());

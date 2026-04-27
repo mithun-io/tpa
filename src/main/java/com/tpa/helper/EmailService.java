@@ -100,7 +100,7 @@ public class EmailService {
                     + "<h2 style='color: #0056b3;'>Claim Status Update</h2>"
                     + "<p>Hello,</p>"
                     + "<p>Your claim <b>#" + claimId + "</b> has been updated to: <span style='font-weight: bold; color: " 
-                    + (status.equalsIgnoreCase("APPROVED") ? "#28a745" : (status.equalsIgnoreCase("REJECTED") ? "#dc3545" : "#ffc107")) 
+                    + (status.contains("APPROVED") || status.equalsIgnoreCase("SETTLED") ? "#28a745" : (status.equalsIgnoreCase("REJECTED") ? "#dc3545" : "#ffc107")) 
                     + ";'>" + status + "</span></p>"
                     + "<p><b>Details:</b></p>"
                     + "<div style='background: #f8f9fa; padding: 10px; border-left: 3px solid #0056b3;'>" + messageStr + "</div>"

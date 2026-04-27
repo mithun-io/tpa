@@ -364,7 +364,7 @@ const AdminDashboard = () => {
     finally { setAiLoading(false); }
   };
 
-  const STATUS_OPTS = ['', 'PENDING', 'PROCESSING', 'REVIEW', 'APPROVED', 'REJECTED'];
+  const STATUS_OPTS = ['', 'SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'CARRIER_APPROVED', 'REJECTED', 'PAYMENT_PENDING', 'SETTLED'];
 
   const fetchCarriers = useCallback(async () => {
     setCarrierLoading(true);
@@ -620,7 +620,7 @@ const AdminDashboard = () => {
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg text-xs font-medium border border-amber-500/20 transition-colors">
                               <Truck className="w-3.5 h-3.5" /> Assign Carrier
                             </button>
-                            {['PENDING', 'PROCESSING', 'REVIEW'].includes(claim.status) && (
+                            {['AI_VALIDATED', 'UNDER_REVIEW', 'SUBMITTED'].includes(claim.status) && (
                               <>
                                 <button onClick={() => setApproveModal(claim.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium border border-emerald-500/20 transition-colors">
                                   <CheckCircle className="w-3.5 h-3.5" /> Approve
@@ -630,7 +630,7 @@ const AdminDashboard = () => {
                                 </button>
                               </>
                             )}
-                            {claim.status === 'APPROVED' && (
+                            {claim.status === 'CARRIER_APPROVED' && (
                               <button 
                                 onClick={() => navigate(`/claims/${claim.id}`)} 
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-blue-600/20"

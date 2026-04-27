@@ -30,15 +30,20 @@ public class PaymentController {
      */
     @PostMapping("/create-order")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'FMG_ADMIN')")
-    public ResponseEntity<Map<String, Object>> createOrder(
+    public ResponseEntity<?> createOrder(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CreatePaymentOrderRequest request) {
+        try {
+            User user = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Map<String, Object> orderDetails = paymentService.createOrder(user.getId(), request);
-        return ResponseEntity.ok(orderDetails);
+            Map<String, Object> orderDetails = paymentService.createOrder(user.getId(), request);
+            return ResponseEntity.ok(orderDetails);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to initiate payment: " + e.getMessage()));
+        }
     }
 
     /**
@@ -47,10 +52,16 @@ public class PaymentController {
      */
     @PostMapping("/verify")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'FMG_ADMIN')")
-    public ResponseEntity<PaymentResponse> verifyPayment(
+    public ResponseEntity<?> verifyPayment(
             @Valid @RequestBody VerifyPaymentRequest request) {
-        PaymentResponse response = paymentService.verifyPayment(request);
-        return ResponseEntity.ok(response);
+        try {
+            PaymentResponse response = paymentService.verifyPayment(request);
+            return ResponseEntity.ok(response);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Payment verification failed: " + e.getMessage()));
+        }
     }
 
     /**

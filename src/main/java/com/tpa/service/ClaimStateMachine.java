@@ -20,12 +20,13 @@ public class ClaimStateMachine {
         }
 
         boolean isValid = switch (currentStatus) {
-            case PENDING -> targetStatus == ClaimStatus.PROCESSING || targetStatus == ClaimStatus.REJECTED;
-            case PROCESSING -> targetStatus == ClaimStatus.PENDING || targetStatus == ClaimStatus.REVIEW || targetStatus == ClaimStatus.REJECTED;
-            case REVIEW -> targetStatus == ClaimStatus.APPROVED || targetStatus == ClaimStatus.REJECTED;
-            case APPROVED -> targetStatus == ClaimStatus.PAYMENT_PENDING;
-            case PAYMENT_PENDING -> targetStatus == ClaimStatus.SETTLED || targetStatus == ClaimStatus.FAILED;
-            case REJECTED, SETTLED, FAILED -> false; // Terminal states
+            case SUBMITTED -> targetStatus == ClaimStatus.AI_VALIDATED || targetStatus == ClaimStatus.REJECTED;
+            case AI_VALIDATED -> targetStatus == ClaimStatus.UNDER_REVIEW || targetStatus == ClaimStatus.ADMIN_APPROVED || targetStatus == ClaimStatus.REJECTED;
+            case UNDER_REVIEW -> targetStatus == ClaimStatus.ADMIN_APPROVED || targetStatus == ClaimStatus.REJECTED;
+            case ADMIN_APPROVED -> targetStatus == ClaimStatus.CARRIER_APPROVED || targetStatus == ClaimStatus.REJECTED;
+            case CARRIER_APPROVED -> targetStatus == ClaimStatus.PAYMENT_PENDING;
+            case PAYMENT_PENDING -> targetStatus == ClaimStatus.SETTLED;
+            case REJECTED, SETTLED -> false; // Terminal states
             default -> false;
         };
 
@@ -34,7 +35,7 @@ public class ClaimStateMachine {
             throw new ConflictException("Invalid status transition from " + currentStatus + " to " + targetStatus);
         }
 
-        if (targetStatus == ClaimStatus.APPROVED) {
+        if (targetStatus == ClaimStatus.CARRIER_APPROVED) {
             meterRegistry.counter("claims.approved.total").increment();
         } else if (targetStatus == ClaimStatus.REJECTED) {
             meterRegistry.counter("claims.rejected.total").increment();

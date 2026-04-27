@@ -59,7 +59,7 @@ public class ClaimServiceImpl implements ClaimService {
         Claim claim = Claim.builder()
                 .policyNumber(request.getPolicyNumber() != null ? request.getPolicyNumber() : "TEMP-" + System.currentTimeMillis())
                 .user(user)
-                .status(ClaimStatus.PENDING)
+                .status(ClaimStatus.SUBMITTED)
                 .amount(request.getClaimedAmount())
                 .carrierName(request.getCarrierName())
                 .carrier(carrier)
@@ -77,7 +77,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .build();
         
         claim = claimRepository.save(claim);
-        log.info("Claim {} created with status PENDING. Upload both documents to trigger processing.", claim.getId());
+        log.info("Claim {} created with status SUBMITTED. Upload both documents to trigger processing.", claim.getId());
         auditLogService.logAction(claim.getId(), "CLAIM_CREATED", null, claim.getStatus());
 
         return claimMapper.toDto(claim);
@@ -96,54 +96,62 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     @CacheEvict(value = "claims", key = "#claimId")
     public void processClaimDecision(Long claimId, ClaimDecisionResponse decision) {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new RuntimeException("Claim not found"));
 
         ClaimStatus previousStatus = claim.getStatus();
-        log.info("Processing claim {} — current status: {}, decision: {}", claimId, previousStatus, decision.getStatus());
+        log.info("[CLAIM-SYNC] Processing decision for claim {}. Current status: {}, New status: {}", 
+                claimId, previousStatus, decision.getStatus());
 
-        // Skip if already in a terminal or processed state
-        if (previousStatus == ClaimStatus.APPROVED || previousStatus == ClaimStatus.REJECTED
-                || previousStatus == ClaimStatus.REVIEW || previousStatus == ClaimStatus.PROCESSING) {
-            log.warn("Claim {} is already in {} state. Skipping duplicate processing.", claimId, previousStatus);
-            return;
+        try {
+            // Skip if already in a terminal or processed state
+            if (previousStatus == ClaimStatus.CARRIER_APPROVED || previousStatus == ClaimStatus.REJECTED
+                    || previousStatus == ClaimStatus.SETTLED) {
+                log.warn("[CLAIM-SYNC] Claim {} is in terminal state {}. Skipping decision.", claimId, previousStatus);
+                return;
+            }
+
+            // Validate current -> AI_VALIDATED transition
+            claimStateMachine.validateTransition(previousStatus, ClaimStatus.AI_VALIDATED);
+            
+            // Mark as AI_VALIDATED internally before applying final decision
+            claim.setStatus(ClaimStatus.AI_VALIDATED);
+            claimRepository.save(claim);
+            auditLogService.logAction(claimId, "AI_VALIDATION_PASSED", previousStatus, ClaimStatus.AI_VALIDATED);
+
+            // Validate AI_VALIDATED -> final decision status
+            claimStateMachine.validateTransition(ClaimStatus.AI_VALIDATED, decision.getStatus());
+
+            claim.setStatus(decision.getStatus());
+            claim.setProcessedDate(LocalDateTime.now());
+
+            if (decision.getReasons() != null && !decision.getReasons().isEmpty()) {
+                claim.setRejectionReason(String.join(", ", decision.getReasons()));
+            }
+
+            claimRepository.save(claim);
+            auditLogService.logAction(claimId, "RULE_ENGINE_DECISION", ClaimStatus.AI_VALIDATED, claim.getStatus());
+            log.info("[CLAIM-SYNC] Claim {} successfully moved to {}", claimId, claim.getStatus());
+            
+            // Send notification (async)
+            ClaimNotificationEvent notificationEvent = ClaimNotificationEvent.builder()
+                    .claimId(claim.getId())
+                    .policyNumber(claim.getPolicyNumber())
+                    .customerEmail(claim.getUser().getEmail())
+                    .status(claim.getStatus())
+                    .message("Status: " + claim.getStatus() + ". Notes: " + (claim.getRejectionReason() != null ? claim.getRejectionReason() : "N/A"))
+                    .build();
+            producerService.sendClaimNotificationEvent(notificationEvent);
+
+        } catch (Exception e) {
+            log.error("[CLAIM-SYNC] CRITICAL: Status transition failed for claim {}: {}", claimId, e.getMessage());
+            // We throw to ensure the REQUIRES_NEW transaction rolls back, 
+            // but the caller (FileUploadService) will catch it.
+            throw e; 
         }
-
-        // Validate PENDING → PROCESSING transition
-        claimStateMachine.validateTransition(previousStatus, ClaimStatus.PROCESSING);
-
-        // Immediately persist as PROCESSING
-        claim.setStatus(ClaimStatus.PROCESSING);
-        claimRepository.save(claim);
-        auditLogService.logAction(claimId, "STATUS_PROCESSING", previousStatus, ClaimStatus.PROCESSING);
-        log.info("Claim {} moved to PROCESSING", claimId);
-
-        // Validate PROCESSING → final decision status
-        claimStateMachine.validateTransition(ClaimStatus.PROCESSING, decision.getStatus());
-
-        claim.setStatus(decision.getStatus());
-        claim.setProcessedDate(LocalDateTime.now());
-
-        if (decision.getReasons() != null && !decision.getReasons().isEmpty()) {
-            claim.setRejectionReason(String.join(", ", decision.getReasons()));
-        }
-
-        claimRepository.save(claim);
-        auditLogService.logAction(claimId, "RULE_ENGINE_DECISION", ClaimStatus.PROCESSING, claim.getStatus());
-        log.info("Claim {} final status: {}", claimId, claim.getStatus());
-        
-        // Send notification
-        ClaimNotificationEvent notificationEvent = ClaimNotificationEvent.builder()
-                .claimId(claim.getId())
-                .policyNumber(claim.getPolicyNumber())
-                .customerEmail(claim.getUser().getEmail())
-                .status(claim.getStatus())
-                .message("Your claim status is now " + claim.getStatus() + ". " + (claim.getRejectionReason() != null ? claim.getRejectionReason() : ""))
-                .build();
-        producerService.sendClaimNotificationEvent(notificationEvent);
     }
 
     @Override

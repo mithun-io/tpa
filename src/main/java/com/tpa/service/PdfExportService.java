@@ -79,10 +79,10 @@ public class PdfExportService {
 
             String statusLabel = claim.getStatus().name();
             Color statusColor = switch (claim.getStatus()) {
-                case APPROVED -> SUCCESS_COLOR;
+                case ADMIN_APPROVED, CARRIER_APPROVED, SETTLED -> SUCCESS_COLOR;
                 case REJECTED -> DANGER_COLOR;
-                case REVIEW   -> WARNING_COLOR;
-                default       -> Color.GRAY;
+                case UNDER_REVIEW -> WARNING_COLOR;
+                default -> Color.GRAY;
             };
 
             Font statusFont = new Font(Font.HELVETICA, 14, Font.BOLD, Color.WHITE);

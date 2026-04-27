@@ -33,7 +33,8 @@ public class ClaimEventConsumer {
             
             // Idempotency check: Skip if claim is already finalized
             com.tpa.dto.response.ClaimResponse claimResponse = claimService.getClaim(claimId);
-            if (claimResponse.getStatus() == com.tpa.enums.ClaimStatus.APPROVED || 
+            if (claimResponse.getStatus() == com.tpa.enums.ClaimStatus.CARRIER_APPROVED || 
+                claimResponse.getStatus() == com.tpa.enums.ClaimStatus.SETTLED ||
                 claimResponse.getStatus() == com.tpa.enums.ClaimStatus.REJECTED) {
                 log.info("[KAFKA] Claim {} already finalized with {}. Skipping.", claimId, claimResponse.getStatus());
                 return;

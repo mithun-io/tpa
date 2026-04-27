@@ -51,21 +51,21 @@ public class ClaimControllerIntegrationTest {
     public void searchClaims_shouldReturn200_whenAdminIsAuthenticated() throws Exception {
         ClaimResponse claim1 = new ClaimResponse();
         claim1.setId(1L);
-        claim1.setStatus(ClaimStatus.APPROVED);
+        claim1.setStatus(ClaimStatus.CARRIER_APPROVED);
 
         Page<ClaimResponse> page = new PageImpl<>(List.of(claim1));
         when(claimService.searchClaims(any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/claims/search?status=APPROVED")
+        mockMvc.perform(get("/api/v1/claims/search?status=CARRIER_APPROVED")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].status").value("APPROVED"));
+                .andExpect(jsonPath("$.content[0].status").value("CARRIER_APPROVED"));
     }
 
     @org.junit.jupiter.api.Test
     public void searchClaims_shouldReturn401_whenNoAuthentication() throws Exception {
-        mockMvc.perform(get("/api/v1/claims/search?status=APPROVED")
+        mockMvc.perform(get("/api/v1/claims/search?status=CARRIER_APPROVED")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(result -> {
                     int status = result.getResponse().getStatus();

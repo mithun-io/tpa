@@ -38,8 +38,22 @@ public class ClaimController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('FMG_ADMIN', 'FMG_EMPLOYEE', 'CARRIER_USER', 'CUSTOMER')")
     public ResponseEntity<ClaimResponse> getClaim(@PathVariable Long id) {
-        return ResponseEntity.ok(claimService.getClaim(id));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        ClaimResponse claim = claimService.getClaim(id);
+        if (claim == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // SECURITY: If user is CUSTOMER, ensure they own the claim
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            if (claim.getUserEmail() == null || !claim.getUserEmail().equals(auth.getName())) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+            }
+        }
+        
+        return ResponseEntity.ok(claim);
     }
 
     @GetMapping("/search")
@@ -51,6 +65,16 @@ public class ClaimController {
             @RequestParam(required = false) Double maxAmount,
             @RequestParam(required = false) String username,
             Pageable pageable) {
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+        boolean isCustomer = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"));
+
+        // SECURITY: Customers can ONLY search their own claims
+        if (isCustomer) {
+            username = currentUsername;
+        }
+
         if (!pageable.getSort().isSorted()) {
             pageable = org.springframework.data.domain.PageRequest.of(
                     pageable.getPageNumber(),
@@ -63,12 +87,31 @@ public class ClaimController {
 
     @GetMapping
     public ResponseEntity<List<ClaimResponse>> getAllClaims() {
-        return ResponseEntity.ok(claimService.getAllClaims());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_FMG_ADMIN"));
+        
+        if (isAdmin) {
+            return ResponseEntity.ok(claimService.getAllClaims());
+        } else {
+            // For customers or others, return only their own claims via a filtered search logic
+            // (or we can just return forbidden if they shouldn't use the bulk list)
+            return ResponseEntity.ok(claimService.searchClaims(null, null, null, null, null, auth.getName(), Pageable.unpaged()).getContent());
+        }
     }
 
     @GetMapping("/{id}/export")
-    @PreAuthorize("hasAnyRole('FMG_ADMIN', 'FMG_EMPLOYEE', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('FMG_ADMIN', 'FMG_EMPLOYEE', 'CARRIER_USER', 'CUSTOMER')")
     public ResponseEntity<byte[]> exportClaimReport(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        ClaimResponse claim = claimService.getClaim(id);
+
+        // SECURITY: If user is CUSTOMER, ensure they own the claim
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            if (claim.getUserEmail() == null || !claim.getUserEmail().equals(auth.getName())) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         byte[] pdfBytes = pdfExportService.exportClaimReport(id);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
@@ -78,12 +121,36 @@ public class ClaimController {
     }
 
     @GetMapping("/{id}/audits")
+    @PreAuthorize("hasAnyRole('FMG_ADMIN', 'FMG_EMPLOYEE', 'CARRIER_USER', 'CUSTOMER')")
     public ResponseEntity<List<com.tpa.entity.ClaimAudit>> getClaimAudits(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        ClaimResponse claim = claimService.getClaim(id);
+        if (claim == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            if (claim.getUserEmail() == null || !claim.getUserEmail().equals(auth.getName())) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+            }
+        }
         return ResponseEntity.ok(claimService.getClaimAudits(id));
     }
 
     @GetMapping("/{id}/timeline")
+    @PreAuthorize("hasAnyRole('FMG_ADMIN', 'FMG_EMPLOYEE', 'CARRIER_USER', 'CUSTOMER')")
     public ResponseEntity<List<com.tpa.entity.ClaimAudit>> getClaimTimeline(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        ClaimResponse claim = claimService.getClaim(id);
+        if (claim == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            if (claim.getUserEmail() == null || !claim.getUserEmail().equals(auth.getName())) {
+                return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+            }
+        }
         return ResponseEntity.ok(claimService.getClaimAudits(id));
     }
 }

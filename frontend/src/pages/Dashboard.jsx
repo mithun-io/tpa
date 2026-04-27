@@ -28,8 +28,8 @@ const StatCard = ({ label, value, icon: Icon, color, bg, onClick }) => (
 
 /* ─── Mini Status Timeline Strip ─────────────────────────── */
 const StatusStrip = ({ status }) => {
-  const STEPS = ['PENDING', 'PROCESSING', 'REVIEW'];
-  const isTerminal = status === 'APPROVED' || status === 'REJECTED';
+  const STEPS = ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED'];
+  const isTerminal = ['CARRIER_APPROVED', 'REJECTED', 'SETTLED'].includes(status);
   const currentIdx = STEPS.indexOf(status);
 
   return (
@@ -37,14 +37,14 @@ const StatusStrip = ({ status }) => {
       {STEPS.map((s, idx) => (
         <div key={s} className="flex items-center gap-1 flex-1">
           <div className={`h-1 rounded-full flex-1 transition-all ${
-            isTerminal && status === 'APPROVED' ? 'bg-emerald-500/50' :
+            isTerminal && (status === 'CARRIER_APPROVED' || status === 'SETTLED') ? 'bg-emerald-500/50' :
             isTerminal && status === 'REJECTED' ? 'bg-red-500/50' :
             idx <= currentIdx ? 'bg-blue-500' : 'bg-slate-700'
           }`} />
         </div>
       ))}
       <div className={`h-1 rounded-full w-4 ${
-        status === 'APPROVED' ? 'bg-emerald-500' :
+        status === 'CARRIER_APPROVED' || status === 'SETTLED' ? 'bg-emerald-500' :
         status === 'REJECTED' ? 'bg-red-500' : 'bg-slate-700'
       }`} />
     </div>
@@ -110,9 +110,9 @@ const Dashboard = () => {
   if (error)   return <ErrorMessage message={error} onRetry={fetchDashboardData} />;
 
   const total    = claims.length;
-  const approved = claims.filter(c => c.status === 'APPROVED').length;
+  const approved = claims.filter(c => c.status === 'CARRIER_APPROVED' || c.status === 'SETTLED').length;
   const rejected = claims.filter(c => c.status === 'REJECTED').length;
-  const pending  = claims.filter(c => ['PENDING', 'PROCESSING', 'REVIEW'].includes(c.status)).length;
+  const pending  = claims.filter(c => ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'PAYMENT_PENDING'].includes(c.status)).length;
 
   const stats = [
     { label: 'Total Claims', value: total,    icon: FileText,    color: 'text-blue-400',   bg: 'bg-blue-500/10' },
@@ -121,7 +121,7 @@ const Dashboard = () => {
     { label: 'Rejected',     value: rejected,  icon: XCircle,     color: 'text-red-400',    bg: 'bg-red-500/10' },
   ];
 
-  const inProgress = claims.filter(c => ['PENDING', 'PROCESSING', 'REVIEW'].includes(c.status));
+  const inProgress = claims.filter(c => ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'PAYMENT_PENDING'].includes(c.status));
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">

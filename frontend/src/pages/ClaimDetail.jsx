@@ -35,7 +35,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 /* ─── Status Timeline ─────────────────────────────────────── */
-const STATUS_STEPS = ['PENDING', 'PROCESSING', 'REVIEW', 'APPROVED', 'PAYMENT_PENDING', 'SETTLED'];
+const STATUS_STEPS = ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'CARRIER_APPROVED', 'PAYMENT_PENDING', 'SETTLED'];
 
 const StatusTimeline = ({ currentStatus }) => {
   const isRejected = currentStatus === 'REJECTED';
@@ -72,14 +72,14 @@ const StatusTimeline = ({ currentStatus }) => {
           <div className="flex flex-col items-center gap-2.5 flex-1">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${
               currentStatus === 'SETTLED' ? 'bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20' :
-              currentStatus === 'APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
+              currentStatus === 'CARRIER_APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
               'bg-slate-800 border-slate-600 text-slate-500'
             }`}>
               {currentStatus === 'SETTLED' ? <CheckCircle className="w-5 h-5" /> : <Banknote className="w-4 h-4" />}
             </div>
             <span className={`text-xs font-semibold text-center ${
               currentStatus === 'SETTLED' ? 'text-emerald-400' : 
-              currentStatus === 'APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'text-blue-400' : 'text-slate-500'
+              currentStatus === 'CARRIER_APPROVED' || currentStatus === 'PAYMENT_PENDING' ? 'text-blue-400' : 'text-slate-500'
             }`}>Settled</span>
           </div>
         </div>
@@ -464,10 +464,13 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
         key: order.key,
         amount: order.amount,
         currency: order.currency,
-        name: "NextGen TPA Systems",
-        description: `Settlement for Claim #${claim.id}`,
+        name: "TPA Claim Settlement",
+        description: "Payment to " + claim.patientName,
         image: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
         order_id: order.orderId,
+        method: {
+          upi: false   // ❌ DISABLE UPI QR
+        },
         handler: async function (response) {
           toast.loading('Verifying Payment Signature...', { id: toastId });
           try {
@@ -476,7 +479,7 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature
             });
-            toast.success('Claim Settled Successfully!', { id: toastId });
+            toast.success('Payment Successful. Claim Settled.', { id: toastId });
             onPaymentSuccess();
           } catch (err) {
             toast.error('Payment Verification Failed', { id: toastId });
@@ -532,7 +535,7 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
     );
   }
 
-  if (claim.status !== 'APPROVED' && claim.status !== 'PAYMENT_PENDING') return null;
+  if (claim.status !== 'CARRIER_APPROVED' && claim.status !== 'PAYMENT_PENDING') return null;
 
   return (
     <div className="bg-blue-600/10 border border-blue-500/20 rounded-xl p-6 flex items-center justify-between">
@@ -542,7 +545,8 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
         </div>
         <div>
           <h3 className="font-bold text-blue-400">Ready for Settlement</h3>
-          <p className="text-xs text-slate-400 mt-1">Claim approved. Release {claim.amount} USD via Razorpay.</p>
+          <p className="text-xs text-slate-200 mt-1">Pay to: <span className="font-bold text-white">{claim.patientName}</span></p>
+          <p className="text-xs text-slate-400">Amount: <span className="font-bold text-blue-400">${claim.amount}</span></p>
         </div>
       </div>
       <button

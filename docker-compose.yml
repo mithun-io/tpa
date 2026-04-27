@@ -94,13 +94,11 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CONFIG_IMPORT=optional:file:.env[.properties]
       # Database
       - DATABASE_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-tpadb}
       - DATABASE_USERNAME=${DB_USER:-tpauser}
       - DATABASE_PASSWORD=${DB_PASSWORD:-tpapassword}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-tpadb}
-      - SPRING_DATASOURCE_USERNAME=${DB_USER:-tpauser}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-tpapassword}
       # Redis
       - REDIS_URL=redis://redis:6379
       - SPRING_DATA_REDIS_HOST=redis
@@ -130,8 +128,9 @@ services:
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
       interval: 15s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      retries: 10
+      start_period: 40s
     networks:
       - tpa-network
 

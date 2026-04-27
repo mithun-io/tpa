@@ -47,10 +47,10 @@ public class PaymentServiceImpl implements PaymentService {
         Claim claim = claimRepository.findById(request.claimId())
                 .orElseThrow(() -> new NoResourceFoundException("Claim not found with id: " + request.claimId()));
 
-        // ✅ BUSINESS RULE: Payment only allowed for APPROVED claims
-        if (claim.getStatus() != ClaimStatus.APPROVED) {
+        // ✅ BUSINESS RULE: Payment only allowed for CARRIER_APPROVED claims
+        if (claim.getStatus() != ClaimStatus.CARRIER_APPROVED) {
             throw new IllegalStateException(
-                    "Payment can only be initiated for APPROVED claims. Current status: " + claim.getStatus());
+                    "Payment can only be initiated for CARRIER_APPROVED claims. Current status: " + claim.getStatus());
         }
 
         // Prevent duplicate orders
@@ -72,6 +72,7 @@ public class PaymentServiceImpl implements PaymentService {
             orderRequest.put("receipt", "TPA-CLM-" + claim.getId());
             orderRequest.put("notes", new JSONObject()
                     .put("claimId", claim.getId())
+                    .put("patientName", claim.getPatientName())
                     .put("policyNumber", claim.getPolicyNumber()));
 
             Order order = client.orders.create(orderRequest);
