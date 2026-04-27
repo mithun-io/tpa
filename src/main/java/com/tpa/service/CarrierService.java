@@ -1,13 +1,13 @@
 package com.tpa.service;
 
-import com.tpa.dto.response.ClaimResponse;
+import com.tpa.dto.response.CarrierClaimDetailResponse;
 import com.tpa.dto.response.PolicyStatusResponse;
 
 import java.util.List;
-import java.util.Map;
 
 public interface CarrierService {
-    List<ClaimResponse> getAssignedClaims(String username);
+    List<CarrierClaimDetailResponse> getAssignedClaims(String username);
+    CarrierClaimDetailResponse       getClaimDetail(Long claimId, String username);
     void validatePolicy(Long claimId, String username);
     void approveClaim(Long claimId, String username);
     void rejectClaim(Long claimId, String username);

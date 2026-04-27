@@ -8,6 +8,8 @@ import com.tpa.entity.User;
 import com.tpa.enums.ClaimStatus;
 import com.tpa.kafka.ClaimEventProducer;
 import com.tpa.mapper.ClaimMapper;
+import com.tpa.kafka.producer.ProducerService;
+import com.tpa.kafka.event.ClaimNotificationEvent;
 import com.tpa.repository.ClaimRepository;
 import com.tpa.repository.ClaimSpecification;
 import com.tpa.repository.UserRepository;
@@ -41,6 +43,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final AuditLogService auditLogService;
     private final ClaimStateMachine claimStateMachine;
     private final CarrierRepository carrierRepository;
+    private final ProducerService producerService;
 
     @Override
     public ClaimResponse createClaim(ClaimDataRequest request, String username) {
@@ -59,6 +62,17 @@ public class ClaimServiceImpl implements ClaimService {
                 .amount(request.getClaimedAmount())
                 .carrierName(request.getCarrierName())
                 .carrier(carrier)
+                .patientName(request.getClaimFormPatientName())
+                .hospitalName(request.getClaimFormHospitalName())
+                .admissionDate(request.getClaimFormAdmissionDate())
+                .dischargeDate(request.getClaimFormDischargeDate())
+                .totalBillAmount(request.getTotalBillAmount())
+                .policyId(request.getPolicyId())
+                .policyName(request.getPolicyName())
+                .claimType(request.getClaimType())
+                .diagnosis(request.getDiagnosis())
+                .billNumber(request.getBillNumber())
+                .billDate(request.getBillDate())
                 .build();
         
         claim = claimRepository.save(claim);
@@ -119,6 +133,16 @@ public class ClaimServiceImpl implements ClaimService {
         claimRepository.save(claim);
         auditLogService.logAction(claimId, "RULE_ENGINE_DECISION", ClaimStatus.PROCESSING, claim.getStatus());
         log.info("Claim {} final status: {}", claimId, claim.getStatus());
+        
+        // Send notification
+        ClaimNotificationEvent notificationEvent = ClaimNotificationEvent.builder()
+                .claimId(claim.getId())
+                .policyNumber(claim.getPolicyNumber())
+                .customerEmail(claim.getUser().getEmail())
+                .status(claim.getStatus())
+                .message("Your claim status is now " + claim.getStatus() + ". " + (claim.getRejectionReason() != null ? claim.getRejectionReason() : ""))
+                .build();
+        producerService.sendClaimNotificationEvent(notificationEvent);
     }
 
     @Override

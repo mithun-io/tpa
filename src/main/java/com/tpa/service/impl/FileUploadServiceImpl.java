@@ -79,7 +79,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         if (hasClaimForm && hasCombinedDoc) {
             log.info("Both documents uploaded for claim {}. Running rule engine synchronously...", claimId);
 
-            // Simulate OCR extraction from both documents
+            // Use actual data from the claim entity
             ClaimDataRequest request = ClaimDataRequest.builder()
                     .claimFormPresent(true)
                     .combinedDocumentPresent(true)
@@ -87,42 +87,23 @@ public class FileUploadServiceImpl implements FileUploadService {
                     .policyStatus("ACTIVE")
                     .claimedAmount(claim.getAmount())
                     .isDuplicate(false)
-                    // Real data from uploaded test documents
-                    .claimFormPatientName("Rajesh Kumar Sharma")
-                    .combinedDocPatientName("Rajesh Kumar Sharma")
-                    .claimFormHospitalName("Apollo Hospitals")
-                    .combinedDocHospitalName("Apollo Hospitals")
-                    .claimFormAdmissionDate(java.time.LocalDate.of(2026, 4, 10))
-                    .combinedDocAdmissionDate(java.time.LocalDate.of(2026, 4, 10))
-                    .claimFormDischargeDate(java.time.LocalDate.of(2026, 4, 16))
-                    .combinedDocDischargeDate(java.time.LocalDate.of(2026, 4, 16))
-                    .totalBillAmount(46500.0)
-                    .policyId("PID-102938")
-                    .carrierName("Care Health Insurance")
-                    .policyName("Family Floater Plan")
-                    .claimType("Reimbursement")
-                    .diagnosis("Acute Appendicitis")
-                    .billNumber("INV-2026-8877")
-                    .billDate(java.time.LocalDate.of(2026, 4, 16))
+                    .claimFormPatientName(claim.getPatientName())
+                    .combinedDocPatientName(claim.getPatientName())
+                    .claimFormHospitalName(claim.getHospitalName())
+                    .combinedDocHospitalName(claim.getHospitalName())
+                    .claimFormAdmissionDate(claim.getAdmissionDate())
+                    .combinedDocAdmissionDate(claim.getAdmissionDate())
+                    .claimFormDischargeDate(claim.getDischargeDate())
+                    .combinedDocDischargeDate(claim.getDischargeDate())
+                    .totalBillAmount(claim.getTotalBillAmount())
+                    .policyId(claim.getPolicyId())
+                    .carrierName(claim.getCarrierName())
+                    .policyName(claim.getPolicyName())
+                    .claimType(claim.getClaimType())
+                    .diagnosis(claim.getDiagnosis())
+                    .billNumber(claim.getBillNumber())
+                    .billDate(claim.getBillDate())
                     .build();
-
-            // Save extracted data to Claim entity for PDF export
-            claim.setPatientName("Rajesh Kumar Sharma");
-            claim.setHospitalName("Apollo Hospitals");
-            claim.setAdmissionDate(java.time.LocalDate.of(2026, 4, 10));
-            claim.setDischargeDate(java.time.LocalDate.of(2026, 4, 16));
-            claim.setTotalBillAmount(46500.0);
-            
-            // Set newly added fields
-            claim.setPolicyId("PID-102938");
-            claim.setCarrierName("Care Health Insurance");
-            claim.setPolicyName("Family Floater Plan");
-            claim.setClaimType("Reimbursement");
-            claim.setDiagnosis("Acute Appendicitis");
-            claim.setBillNumber("INV-2026-8877");
-            claim.setBillDate(java.time.LocalDate.of(2026, 4, 16));
-            
-            claimRepository.save(claim);
 
             // Always process synchronously — guarantees DB update before response returns
             try {

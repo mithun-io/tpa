@@ -131,12 +131,12 @@ const ClaimList = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Min Amount (₹)</label>
-              <input type="number" name="minAmount" value={filters.minAmount} onChange={handleFilterChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. 5000" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Min Amount ($)</label>
+              <input type="number" name="minAmount" value={filters.minAmount} onChange={handleFilterChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. 1000" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Max Amount (₹)</label>
-              <input type="number" name="maxAmount" value={filters.maxAmount} onChange={handleFilterChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. 50000" />
+              <label className="block text-xs font-medium text-slate-400 mb-1">Max Amount ($)</label>
+              <input type="number" name="maxAmount" value={filters.maxAmount} onChange={handleFilterChange} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" placeholder="e.g. 100000" />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">From Date</label>

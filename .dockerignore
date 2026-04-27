@@ -2,7 +2,6 @@ target
 .git
 .idea
 *.iml
-.mvn
 node_modules
 tpa-deploy.tar.gz
 test-documents

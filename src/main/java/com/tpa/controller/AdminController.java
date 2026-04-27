@@ -103,7 +103,7 @@ public class AdminController {
         // Mock Error logs
         response.put("errorLogs", List.of(
             java.util.Map.of("timestamp", java.time.LocalDateTime.now().minusHours(1), "level", "ERROR", "message", "Failed to connect to AI provider"),
-            java.util.Map.of("timestamp", java.time.LocalDateTime.now().minusHours(3), "level", "WARN", "message", "Rate limit exceeded on Groq API"),
+            java.util.Map.of("timestamp", java.time.LocalDateTime.now().minusHours(3), "level", "WARN", "message", "Rate limit exceeded on AI provider API"),
             java.util.Map.of("timestamp", java.time.LocalDateTime.now().minusDays(1), "level", "ERROR", "message", "NullPointerException in RuleEngine")
         ));
         

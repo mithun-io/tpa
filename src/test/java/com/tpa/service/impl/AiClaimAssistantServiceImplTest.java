@@ -157,4 +157,35 @@ class AiClaimAssistantServiceImplTest {
             assertThat(response.getConfidenceScore()).isEqualTo(100); // Expecting bounded logic to cap at 100
         }
     }
+
+    @Test
+    @DisplayName("TC-AI-01: analyzeClaim handles invalid/malformed response securely")
+    void analyzeClaim_invalidResponse_handled() {
+        String invalidJson = "{ malformed json ";
+        mockAiResponse(invalidJson);
+
+        Claim claim = new Claim();
+        claim.setId(10L);
+        when(claimRepository.findById(10L)).thenReturn(Optional.of(claim));
+
+        com.tpa.dto.response.AiAnalysisResponse response = aiService.analyzeClaim(10L, "prompt");
+
+        assertThat(response.getVerdict()).isEqualTo(com.tpa.enums.Verdict.REVIEW);
+        assertThat(response.getFlags()).contains("AI analysis failed: No valid JSON object found in AI response");
+    }
+
+    @Test
+    @DisplayName("TC-AI-02: analyzeClaim fallback works if API fails")
+    void analyzeClaim_fallbackWorks() {
+        when(requestBodySpec.retrieve()).thenThrow(new RuntimeException("API Down"));
+
+        Claim claim = new Claim();
+        claim.setId(10L);
+        when(claimRepository.findById(10L)).thenReturn(Optional.of(claim));
+
+        com.tpa.dto.response.AiAnalysisResponse response = aiService.analyzeClaim(10L, "prompt");
+
+        assertThat(response.getVerdict()).isEqualTo(com.tpa.enums.Verdict.REVIEW);
+        assertThat(response.getRecommendation()).contains("Manual review required due to AI failure");
+    }
 }

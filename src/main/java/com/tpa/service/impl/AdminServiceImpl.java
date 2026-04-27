@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -59,6 +60,7 @@ public class AdminServiceImpl implements AdminService {
     private final com.tpa.service.NotificationService notificationService;
     private final CarrierRepository carrierRepository;
     private final ClaimEventProducer claimEventProducer;
+    private final com.tpa.helper.EmailService emailService;
 
     private User getUser(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new NoResourceFoundException("user not found"));
@@ -287,18 +289,51 @@ public class AdminServiceImpl implements AdminService {
     public CarrierResponse approveCarrier(Long carrierId) {
         com.tpa.entity.Carrier carrier = carrierRepository.findById(carrierId)
             .orElseThrow(() -> new NoResourceFoundException("carrier not found"));
-        carrier.getUser().setUserStatus(UserStatus.ACTIVE);
-        userRepository.save(carrier.getUser());
+
+        User carrierUser = carrier.getUser();
+        carrierUser.setUserStatus(UserStatus.ACTIVE);
+        userRepository.saveAndFlush(carrierUser);
         log.info("Carrier {} APPROVED by admin", carrier.getCompanyName());
 
-        // Kafka event
-        try {
-            claimEventProducer.publishCarrierApprovedEvent(carrier.getId(), carrier.getCompanyName(), carrier.getUser().getEmail());
-        } catch (Exception e) {
-            log.warn("Failed to publish carrier-approved Kafka event: {}", e.getMessage());
-        }
+        // Fire email + Kafka AFTER commit — never blocks the HTTP response, never rolls back DB
+        final Long cId = carrier.getId();
+        final String cName = carrier.getCompanyName();
+        final String cEmail = carrierUser.getEmail();
+        TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // Send approval email
+                try {
+                    emailService.sendCarrierApprovalEmail(cEmail, cName);
+                } catch (Exception e) {
+                    log.warn("Failed to send carrier approval email to {}: {}", cEmail, e.getMessage());
+                }
+                // Publish Kafka event
+                try {
+                    claimEventProducer.publishCarrierApprovedEvent(cId, cName, cEmail);
+                } catch (Exception e) {
+                    log.warn("Failed to publish carrier-approved Kafka event for {}: {}", cId, e.getMessage());
+                }
+            }
+        });
 
-        return getAllCarriers().stream().filter(r -> r.getId().equals(carrierId)).findFirst().orElseThrow();
+        return CarrierResponse.builder()
+            .id(carrier.getId())
+            .companyName(carrier.getCompanyName())
+            .email(carrierUser.getEmail())
+            .mobile(carrierUser.getMobile())
+            .companyType(carrier.getCompanyType())
+            .licenseNumber(carrier.getLicenseNumber())
+            .registrationNumber(carrier.getRegistrationNumber())
+            .taxId(carrier.getTaxId())
+            .contactPersonName(carrier.getContactPersonName())
+            .contactPersonPhone(carrier.getContactPersonPhone())
+            .website(carrier.getWebsite())
+            .userStatus(UserStatus.ACTIVE.name())
+            .aiRiskScore(carrier.getAiRiskScore())
+            .aiRiskStatus(carrier.getAiRiskStatus())
+            .aiRecommendation(carrier.getAiRecommendation())
+            .build();
     }
 
     @Override
@@ -306,10 +341,43 @@ public class AdminServiceImpl implements AdminService {
     public CarrierResponse rejectCarrier(Long carrierId) {
         com.tpa.entity.Carrier carrier = carrierRepository.findById(carrierId)
             .orElseThrow(() -> new NoResourceFoundException("carrier not found"));
-        carrier.getUser().setUserStatus(UserStatus.BLOCKED);
-        userRepository.save(carrier.getUser());
+
+        User carrierUser = carrier.getUser();
+        carrierUser.setUserStatus(UserStatus.BLOCKED);
+        userRepository.saveAndFlush(carrierUser);
         log.info("Carrier {} REJECTED by admin", carrier.getCompanyName());
-        return getAllCarriers().stream().filter(r -> r.getId().equals(carrierId)).findFirst().orElseThrow();
+
+        // Send rejection email AFTER commit
+        final String cEmail = carrierUser.getEmail();
+        final String cName = carrier.getCompanyName();
+        TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    emailService.sendCarrierRejectionEmail(cEmail, cName);
+                } catch (Exception e) {
+                    log.warn("Failed to send carrier rejection email to {}: {}", cEmail, e.getMessage());
+                }
+            }
+        });
+
+        return CarrierResponse.builder()
+            .id(carrier.getId())
+            .companyName(carrier.getCompanyName())
+            .email(carrierUser.getEmail())
+            .mobile(carrierUser.getMobile())
+            .companyType(carrier.getCompanyType())
+            .licenseNumber(carrier.getLicenseNumber())
+            .registrationNumber(carrier.getRegistrationNumber())
+            .taxId(carrier.getTaxId())
+            .contactPersonName(carrier.getContactPersonName())
+            .contactPersonPhone(carrier.getContactPersonPhone())
+            .website(carrier.getWebsite())
+            .userStatus(UserStatus.BLOCKED.name())
+            .aiRiskScore(carrier.getAiRiskScore())
+            .aiRiskStatus(carrier.getAiRiskStatus())
+            .aiRecommendation(carrier.getAiRecommendation())
+            .build();
     }
 
     @Override

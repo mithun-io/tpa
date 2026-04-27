@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +16,7 @@ public class ProducerService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
+    @Async("taskExecutor")
     public void sendPaymentEvent(PaymentEvent paymentEvent) {
         try {
             String message = objectMapper.writeValueAsString(paymentEvent);
@@ -30,6 +32,7 @@ public class ProducerService {
         }
     }
 
+    @Async("taskExecutor")
     public void sendClaimNotificationEvent(com.tpa.kafka.event.ClaimNotificationEvent claimNotificationEvent) {
         try {
             String message = objectMapper.writeValueAsString(claimNotificationEvent);

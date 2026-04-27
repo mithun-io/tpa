@@ -66,12 +66,10 @@ public class ClaimEventConsumer {
             String status = event.get("status").toString();
             String reviewNotes = event.get("message").toString();
             
-            // Note: In real app, we fetch user email using claimId. 
-            // Using a dummy email for mock notification purposes.
-            String mockEmail = "customer-" + claimId + "@tpa.com";
+            String customerEmail = event.get("customerEmail") != null ? event.get("customerEmail").toString() : "customer-" + claimId + "@tpa.com";
             
-            emailService.sendClaimStatusNotification(mockEmail, claimId, status, reviewNotes);
-            log.info("Sent email notification for claim {}", claimId);
+            emailService.sendClaimStatusNotification(customerEmail, claimId, status, reviewNotes);
+            log.info("Sent email notification for claim {} to {}", claimId, customerEmail);
             
         } catch (Exception e) {
             log.error("Error processing claim notification: {}", e.getMessage());

@@ -2,7 +2,7 @@ package com.tpa.controller;
 
 import com.tpa.dto.response.AiAnalysisResponse;
 import com.tpa.dto.response.ApiResponse;
-import com.tpa.dto.response.ClaimResponse;
+import com.tpa.dto.response.CarrierClaimDetailResponse;
 import com.tpa.dto.response.PolicyStatusResponse;
 import com.tpa.service.AiClaimAssistantService;
 import com.tpa.service.CarrierService;
@@ -22,23 +22,32 @@ import java.util.Map;
 @PreAuthorize("hasRole('CARRIER_USER')")
 public class CarrierController {
 
-    private final CarrierService carrierService;
-    private final AiClaimAssistantService aiClaimAssistantService;
+    private final CarrierService           carrierService;
+    private final AiClaimAssistantService  aiClaimAssistantService;
 
     private String currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return auth.getName();
     }
 
+    /** List all claims assigned to this carrier — with full patient + fraud + policy detail. */
     @GetMapping("/claims")
-    public ResponseEntity<ApiResponse<List<ClaimResponse>>> getAssignedClaims() {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Claims fetched", carrierService.getAssignedClaims(currentUser()), 200));
+    public ResponseEntity<ApiResponse<List<CarrierClaimDetailResponse>>> getAssignedClaims() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Claims fetched",
+                carrierService.getAssignedClaims(currentUser()), 200));
+    }
+
+    /** Single claim detail — carrier-scoped. */
+    @GetMapping("/claims/{id}")
+    public ResponseEntity<ApiResponse<CarrierClaimDetailResponse>> getClaimDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Claim detail fetched",
+                carrierService.getClaimDetail(id, currentUser()), 200));
     }
 
     @PatchMapping("/claims/{id}/validate")
     public ResponseEntity<ApiResponse<Void>> validatePolicy(@PathVariable Long id) {
         carrierService.validatePolicy(id, currentUser());
-        return ResponseEntity.ok(new ApiResponse<>(true, "Policy validated", null, 200));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Policy validated successfully", null, 200));
     }
 
     @PatchMapping("/claims/{id}/approve")
@@ -59,7 +68,8 @@ public class CarrierController {
             @RequestBody Map<String, String> body) {
         String remark = body.getOrDefault("remark", "");
         if (remark.isBlank()) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Remark cannot be empty", null, 400));
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "Remark cannot be empty", null, 400));
         }
         carrierService.addRemark(id, remark, currentUser());
         return ResponseEntity.ok(new ApiResponse<>(true, "Remark added successfully", null, 200));
@@ -77,6 +87,10 @@ public class CarrierController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Policy status retrieved", result, 200));
     }
 
+    /**
+     * AI analysis for a carrier-scoped claim.
+     * Reuses the same AiClaimAssistantService as the Admin panel.
+     */
     @PostMapping("/claims/{id}/ai-analyze")
     public ResponseEntity<ApiResponse<AiAnalysisResponse>> aiAnalyze(
             @PathVariable Long id,

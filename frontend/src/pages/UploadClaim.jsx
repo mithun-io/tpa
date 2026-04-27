@@ -293,15 +293,15 @@ const UploadClaim = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
                 <div>
                   <label className={labelClass}>Policy Number <span className="text-red-400">*</span></label>
-                  <input required type="text" name="policyNumber" value={formData.policyNumber} onChange={handleInputChange} className={inputClass} placeholder="POL-123456" />
+                  <input required type="text" name="policyNumber" value={formData.policyNumber} onChange={handleInputChange} className={inputClass} placeholder="POL-US-2024-123456" />
                 </div>
                 <div>
                   <label className={labelClass}>Patient Name <span className="text-red-400">*</span></label>
-                  <input required type="text" name="claimFormPatientName" value={formData.claimFormPatientName} onChange={handleInputChange} className={inputClass} placeholder="John Doe" />
+                  <input required type="text" name="claimFormPatientName" value={formData.claimFormPatientName} onChange={handleInputChange} className={inputClass} placeholder="e.g. Jane Smith" />
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClass}>Hospital Name <span className="text-red-400">*</span></label>
-                  <input required type="text" name="claimFormHospitalName" value={formData.claimFormHospitalName} onChange={handleInputChange} className={inputClass} placeholder="City General Hospital" />
+                  <input required type="text" name="claimFormHospitalName" value={formData.claimFormHospitalName} onChange={handleInputChange} className={inputClass} placeholder="e.g. Mayo Clinic, Johns Hopkins" />
                 </div>
                 <div>
                   <label className={labelClass}>Admission Date <span className="text-red-400">*</span></label>
@@ -313,15 +313,15 @@ const UploadClaim = () => {
                 </div>
                 <div>
                   <label className={labelClass}>Claimed Amount ($) <span className="text-red-400">*</span></label>
-                  <input required type="number" step="0.01" name="claimedAmount" value={formData.claimedAmount} onChange={handleInputChange} className={inputClass} placeholder="15000.00" />
+                  <input required type="number" step="0.01" name="claimedAmount" value={formData.claimedAmount} onChange={handleInputChange} className={inputClass} placeholder="12500.00" />
                 </div>
                 <div>
                   <label className={labelClass}>Total Bill Amount ($) <span className="text-red-400">*</span></label>
-                  <input required type="number" step="0.01" name="totalBillAmount" value={formData.totalBillAmount} onChange={handleInputChange} className={inputClass} placeholder="18000.00" />
+                  <input required type="number" step="0.01" name="totalBillAmount" value={formData.totalBillAmount} onChange={handleInputChange} className={inputClass} placeholder="15750.00" />
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelClass}>Diagnosis / Reason</label>
-                  <input type="text" name="diagnosis" value={formData.diagnosis} onChange={handleInputChange} className={inputClass} placeholder="e.g. Appendectomy, Fracture, etc." />
+                  <input type="text" name="diagnosis" value={formData.diagnosis} onChange={handleInputChange} className={inputClass} placeholder="e.g. Appendectomy, Hip Replacement, etc." />
                 </div>
               </div>
 

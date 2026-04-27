@@ -115,6 +115,75 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendCarrierApprovalEmail(String email, String companyName) {
+        try {
+            String subject = "✅ Your Carrier Application Has Been Approved — TPA Claim System";
+
+            String text = "<html><body style='font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0;'>"
+                    + "<div style='max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>"
+                    + "<div style='background: linear-gradient(135deg, #1a6b2e, #28a745); padding: 30px 24px; text-align: center;'>"
+                    + "<h1 style='color: #fff; margin: 0; font-size: 24px;'>🎉 Application Approved!</h1>"
+                    + "</div>"
+                    + "<div style='padding: 28px 24px;'>"
+                    + "<p>Dear <b>" + companyName + "</b>,</p>"
+                    + "<p>We are pleased to inform you that your carrier registration application on the <b>TPA Claim System</b> has been <span style='color: #28a745; font-weight: bold;'>APPROVED</span> by our admin team.</p>"
+                    + "<div style='background: #f0fff4; border-left: 4px solid #28a745; border-radius: 4px; padding: 14px 18px; margin: 20px 0;'>"
+                    + "<p style='margin: 0; color: #155724; font-weight: bold;'>✅ Your account is now active.</p>"
+                    + "<p style='margin: 8px 0 0 0; color: #155724; font-size: 14px;'>You can now log in to the carrier portal using your registered email and password.</p>"
+                    + "</div>"
+                    + "<p style='font-size: 14px; color: #555;'>If you have any questions, please contact our support team.</p>"
+                    + "<br/><p>Best regards,<br/><b>TPA Claim System Team</b></p>"
+                    + "</div>"
+                    + "<div style='background: #f8f9fa; padding: 14px 24px; text-align: center; border-top: 1px solid #ddd;'>"
+                    + "<p style='margin: 0; font-size: 12px; color: #888;'>This is an automated message. Please do not reply directly to this email.</p>"
+                    + "</div>"
+                    + "</div>"
+                    + "</body></html>";
+
+            sendEmail(email, subject, text);
+            log.info("Carrier approval email sent to {}", email);
+
+        } catch (Exception e) {
+            log.error("Failed to send carrier approval email to {}", email, e);
+        }
+    }
+
+    @Async
+    public void sendCarrierRejectionEmail(String email, String companyName) {
+        try {
+            String subject = "❌ Your Carrier Application Status — TPA Claim System";
+
+            String text = "<html><body style='font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0;'>"
+                    + "<div style='max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>"
+                    + "<div style='background: linear-gradient(135deg, #7b1c1c, #dc3545); padding: 30px 24px; text-align: center;'>"
+                    + "<h1 style='color: #fff; margin: 0; font-size: 24px;'>Application Not Approved</h1>"
+                    + "</div>"
+                    + "<div style='padding: 28px 24px;'>"
+                    + "<p>Dear <b>" + companyName + "</b>,</p>"
+                    + "<p>Thank you for applying to join the <b>TPA Claim System</b> carrier network.</p>"
+                    + "<p>After reviewing your application, our compliance team has determined that we are unable to approve your carrier registration at this time.</p>"
+                    + "<div style='background: #fff5f5; border-left: 4px solid #dc3545; border-radius: 4px; padding: 14px 18px; margin: 20px 0;'>"
+                    + "<p style='margin: 0; color: #721c24; font-weight: bold;'>❌ Application Status: Not Approved</p>"
+                    + "<p style='margin: 8px 0 0 0; color: #721c24; font-size: 14px;'>If you believe this is in error or would like to provide additional documentation, please contact our support team.</p>"
+                    + "</div>"
+                    + "<p style='font-size: 14px; color: #555;'>We appreciate your interest and encourage you to reach out if you have any questions.</p>"
+                    + "<br/><p>Best regards,<br/><b>TPA Claim System Team</b></p>"
+                    + "</div>"
+                    + "<div style='background: #f8f9fa; padding: 14px 24px; text-align: center; border-top: 1px solid #ddd;'>"
+                    + "<p style='margin: 0; font-size: 12px; color: #888;'>This is an automated message. Please do not reply directly to this email.</p>"
+                    + "</div>"
+                    + "</div>"
+                    + "</body></html>";
+
+            sendEmail(email, subject, text);
+            log.info("Carrier rejection email sent to {}", email);
+
+        } catch (Exception e) {
+            log.error("Failed to send carrier rejection email to {}", email, e);
+        }
+    }
+
     private void sendEmail(String to, String subject, String htmlContent) throws Exception {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);

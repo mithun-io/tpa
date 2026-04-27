@@ -7,7 +7,7 @@ import {
   CheckCircle, XCircle, Clock, FileText, Search, Filter,
   ChevronLeft, ChevronRight, Bot, X, ShieldCheck, ShieldX,
   ShieldAlert, AlertTriangle, RefreshCw, Eye, Users, Shield,
-  Lock, Unlock, Activity, Terminal, Truck, Brain
+  Lock, Unlock, Activity, Terminal, Truck, Brain, Loader2, Bell
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,13 +37,13 @@ const ActionModal = ({ isOpen, title, content, placeholder, onConfirm, onCancel,
           <button
             onClick={() => { onConfirm(reason); setReason(''); }}
             disabled={(placeholder && !reason.trim()) || loading}
-            className={`px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-colors ${
+            className={`px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-colors flex items-center justify-center min-w-[100px] ${
               actionType === 'danger' ? 'bg-red-600 hover:bg-red-700' :
               actionType === 'success' ? 'bg-emerald-600 hover:bg-emerald-700' :
               'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {loading ? <Loader message="" /> : 'Confirm'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm'}
           </button>
         </div>
       </div>
@@ -191,6 +191,50 @@ const AdminDashboard = () => {
   const [carrierLoading, setCarrierLoading] = useState(false);
   const [carrierStatusFilter, setCarrierStatusFilter] = useState('');
   const [carrierActionLoading, setCarrierActionLoading] = useState(null);
+
+  // Notifications
+  const [notifications, setNotifications]   = useState([]);
+  const [notifOpen, setNotifOpen]           = useState(false);
+  const [notifLoading, setNotifLoading]     = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const tok = localStorage.getItem('token');
+      const res = await fetch('/api/v1/notifications', { headers: { Authorization: `Bearer ${tok}` } });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(prev => {
+          const prevUnread = prev.filter(n => !n.read).length;
+          const newUnread  = (data || []).filter(n => !n.read).length;
+          if (newUnread > prevUnread) {
+            toast(`🔔 New notification: ${(data || []).find(n => !n.read)?.title || 'Claim update'}`,
+              { icon: '🔔', style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' } });
+          }
+          return data || [];
+        });
+      }
+    } catch (_) {}
+  }, []);
+
+  // Poll every 10 seconds for new notifications
+  useEffect(() => {
+    fetchNotifications();
+    const id = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(id);
+  }, [fetchNotifications]);
+
+  const markAllRead = async () => {
+    const tok = localStorage.getItem('token');
+    await fetch('/api/v1/notifications/mark-read', { method: 'POST', headers: { Authorization: `Bearer ${tok}` } });
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const markOneRead = async (id) => {
+    const tok = localStorage.getItem('token');
+    await fetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${tok}` } });
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
 
   // Assign carrier to claim
   const [assignModal, setAssignModal]   = useState(null); // claimId
@@ -354,21 +398,30 @@ const AdminDashboard = () => {
   const handleApproveCarrier = async (id) => {
     setCarrierActionLoading(`approve-${id}`);
     try {
-      await approveCarrier(id);
-      toast.success('Carrier approved!');
-      fetchCarriers();
-    } catch { toast.error('Failed to approve carrier'); }
-    finally { setCarrierActionLoading(null); }
+      const result = await approveCarrier(id);
+      const name = result?.companyName || result?.data?.companyName || `Carrier #${id}`;
+      toast.success(`✅ ${name} has been approved! An email notification has been sent.`, { duration: 4000 });
+      await fetchCarriers();
+    } catch (err) {
+      // Global axios interceptor already shows a toast — only log here
+      console.error('Approve carrier error:', err?.response?.data || err?.message);
+    } finally {
+      setCarrierActionLoading(null);
+    }
   };
 
   const handleRejectCarrier = async (id) => {
     setCarrierActionLoading(`reject-${id}`);
     try {
-      await rejectCarrier(id);
-      toast.success('Carrier rejected.');
-      fetchCarriers();
-    } catch { toast.error('Failed to reject carrier'); }
-    finally { setCarrierActionLoading(null); }
+      const result = await rejectCarrier(id);
+      const name = result?.companyName || result?.data?.companyName || `Carrier #${id}`;
+      toast.success(`🚫 ${name} has been rejected.`, { duration: 4000 });
+      await fetchCarriers();
+    } catch (err) {
+      console.error('Reject carrier error:', err?.response?.data || err?.message);
+    } finally {
+      setCarrierActionLoading(null);
+    }
   };
 
   return (
@@ -379,17 +432,73 @@ const AdminDashboard = () => {
           <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Admin Dashboard</h1>
           <p className="text-sm text-slate-400 mt-1">Manage users and review insurance claims</p>
         </div>
-        <button
-          onClick={() => {
-            if (activeTab === 'CLAIMS') fetchClaims();
-            else if (activeTab === 'USERS') fetchUsers();
-            else if (activeTab === 'MONITORING') fetchMonitoring();
-            else if (activeTab === 'CARRIERS') fetchCarriers();
-          }}
-          className="flex items-center gap-2 text-sm text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-4 py-2 transition-all shadow-sm"
-        >
-          <RefreshCw className="w-4 h-4" /> Refresh Data
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              onClick={() => { setNotifOpen(o => !o); if (!notifOpen) fetchNotifications(); }}
+              className="relative flex items-center justify-center w-10 h-10 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4 text-slate-300" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Panel */}
+            {notifOpen && (
+              <div className="absolute right-0 top-12 w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                  <h3 className="font-bold text-white flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-amber-400" /> Notifications
+                    {unreadCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && (
+                      <button onClick={markAllRead} className="text-[11px] text-blue-400 hover:text-blue-300 font-medium">Mark all read</button>
+                    )}
+                    <button onClick={() => setNotifOpen(false)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <div className="max-h-96 overflow-y-auto divide-y divide-slate-800">
+                  {notifications.length === 0 ? (
+                    <div className="py-10 text-center text-slate-500 text-sm">No notifications yet</div>
+                  ) : notifications.map(n => (
+                    <div
+                      key={n.id}
+                      onClick={() => markOneRead(n.id)}
+                      className={`px-4 py-3 cursor-pointer transition-colors hover:bg-slate-800/60 ${!n.read ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`text-xs font-semibold ${!n.read ? 'text-white' : 'text-slate-400'}`}>{n.title}</p>
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1" />}
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-[10px] text-slate-600 mt-1">
+                        {n.createdAt ? new Date(n.createdAt).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              if (activeTab === 'CLAIMS') fetchClaims();
+              else if (activeTab === 'USERS') fetchUsers();
+              else if (activeTab === 'MONITORING') fetchMonitoring();
+              else if (activeTab === 'CARRIERS') fetchCarriers();
+            }}
+            className="flex items-center gap-2 text-sm text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-4 py-2 transition-all shadow-sm"
+          >
+            <RefreshCw className="w-4 h-4" /> Refresh Data
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -906,17 +1015,21 @@ const AdminDashboard = () => {
                                 {carrier.userStatus !== 'ACTIVE' && (
                                   <button
                                     onClick={() => handleApproveCarrier(carrier.id)}
-                                    disabled={carrierActionLoading === `approve-${carrier.id}`}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-50">
-                                    <CheckCircle className="w-3.5 h-3.5" /> Approve
+                                    disabled={carrierActionLoading === `approve-${carrier.id}` || carrierActionLoading === `reject-${carrier.id}`}
+                                    className="flex items-center justify-center gap-1 min-w-[90px] px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                                    {carrierActionLoading === `approve-${carrier.id}`
+                                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Approving…</>
+                                      : <><CheckCircle className="w-3.5 h-3.5" /> Approve</>}
                                   </button>
                                 )}
                                 {carrier.userStatus !== 'BLOCKED' && (
                                   <button
                                     onClick={() => handleRejectCarrier(carrier.id)}
-                                    disabled={carrierActionLoading === `reject-${carrier.id}`}
-                                    className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-50">
-                                    <XCircle className="w-3.5 h-3.5" /> Reject
+                                    disabled={carrierActionLoading === `reject-${carrier.id}` || carrierActionLoading === `approve-${carrier.id}`}
+                                    className="flex items-center justify-center gap-1 min-w-[82px] px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                                    {carrierActionLoading === `reject-${carrier.id}`
+                                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Rejecting…</>
+                                      : <><XCircle className="w-3.5 h-3.5" /> Reject</>}
                                   </button>
                                 )}
                               </div>

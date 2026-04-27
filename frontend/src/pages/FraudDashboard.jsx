@@ -15,7 +15,7 @@ const FraudDashboard = () => {
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const isAdmin = user?.role === 'FMG_ADMIN';
+  const isAdmin = user?.userRole === 'FMG_ADMIN';
 
   const fetchData = async () => {
     try {

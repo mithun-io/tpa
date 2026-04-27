@@ -208,7 +208,7 @@ const Register = () => {
         <div className="login-brand">
           <div className="login-logo"><span>T</span></div>
           <h1 className="login-title">Create Account</h1>
-          <p className="login-subtitle">TPA ClaimSys — Customer Registration</p>
+          <p className="login-subtitle">TPA ClaimSys — Member Registration</p>
         </div>
 
         {/* ── Step indicator ──────────────────────────────────────── */}
@@ -239,7 +239,7 @@ const Register = () => {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="John Doe"
+                  placeholder="Jane Smith"
                   className={`field-input ${fieldErrors.name ? 'field-input--error' : ''}`}
                 />
               </div>
@@ -265,7 +265,7 @@ const Register = () => {
 
             {/* Mobile */}
             <div className="field-group">
-              <label htmlFor="reg-mobile" className="field-label">Mobile Number</label>
+              <label htmlFor="reg-mobile" className="field-label">Phone Number</label>
               <div className="field-wrap">
                 <Phone className="field-icon" size={18} />
                 <input
@@ -273,7 +273,7 @@ const Register = () => {
                   type="tel"
                   value={form.mobile}
                   onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                  placeholder="9876543210"
+                  placeholder="(555) 867-5309"
                   className={`field-input ${fieldErrors.mobile ? 'field-input--error' : ''}`}
                 />
               </div>
@@ -290,7 +290,7 @@ const Register = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Min 8 chars, uppercase, number, symbol"
+                  placeholder="Min. 8 chars, uppercase, number, symbol"
                   className={`field-input field-input--padded-right ${fieldErrors.password ? 'field-input--error' : ''}`}
                 />
                 <button
@@ -367,7 +367,7 @@ const Register = () => {
                   type="text"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="123 Main St, City"
+                  placeholder="123 Main St, Springfield, IL 62701"
                   className={`field-input ${fieldErrors.address ? 'field-input--error' : ''}`}
                 />
               </div>

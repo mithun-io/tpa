@@ -27,10 +27,11 @@ spring:
 
   data:
     redis:
-      url: ${REDIS_URL}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: tpa-group
       auto-offset-reset: earliest
@@ -40,7 +41,7 @@ spring:
 
   ai:
     openai:
-      api-key: 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
+      api-key: ${OPENAI_API_KEY}
       base-url: https://api.groq.com/openai/v1
       chat:
         options:

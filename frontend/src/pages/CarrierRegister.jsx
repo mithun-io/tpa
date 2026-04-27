@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
-  Building2, FileText, Mail, Phone, Lock, MapPin,
+  Building2, FileText, Mail, Phone, Lock, MapPin, User,
   Hash, CheckCircle2, ChevronRight, Truck, ShieldCheck, KeyRound, Clock
 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const API = (path, method, body) =>
 /* ─── STEP 1 – Registration Form ─────────────────────── */
 const RegisterForm = ({ formData, onChange, onSubmit, submitting }) => (
   <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <Field label="Company Name" name="companyName" value={formData.companyName} onChange={onChange} icon={<Building2 size={16} />} placeholder="Acme Insurance" />
+    <Field label="Company Name" name="companyName" value={formData.companyName} onChange={onChange} icon={<Building2 size={16} />} placeholder="Acme Insurance Co." />
     <div className="space-y-1">
       <label className="text-xs font-semibold text-slate-400">Company Type</label>
       <select name="companyType" value={formData.companyType} onChange={onChange} required
@@ -27,21 +27,21 @@ const RegisterForm = ({ formData, onChange, onSubmit, submitting }) => (
         <option value="PARTNER">Third-Party Partner</option>
       </select>
     </div>
-    <Field label="Registration Number" name="registrationNumber" value={formData.registrationNumber} onChange={onChange} icon={<Hash size={16} />} placeholder="REG-12345" />
-    <Field label="License Number" name="licenseNumber" value={formData.licenseNumber} onChange={onChange} icon={<FileText size={16} />} placeholder="LIC-9999" />
+    <Field label="Registration Number" name="registrationNumber" value={formData.registrationNumber} onChange={onChange} icon={<Hash size={16} />} placeholder="REG-2024-US-12345" />
+    <Field label="License Number" name="licenseNumber" value={formData.licenseNumber} onChange={onChange} icon={<FileText size={16} />} placeholder="DOI-LIC-2024-9999" />
     <Field label="Official Email" name="email" type="email" value={formData.email} onChange={onChange} icon={<Mail size={16} />} placeholder="contact@company.com" />
-    <Field label="Official Phone" name="mobile" value={formData.mobile} onChange={onChange} icon={<Phone size={16} />} placeholder="+1 234 567 890" />
-    <Field label="Contact Person Name" name="contactPersonName" value={formData.contactPersonName} onChange={onChange} placeholder="John Doe" />
-    <Field label="Contact Person Phone" name="contactPersonPhone" value={formData.contactPersonPhone} onChange={onChange} placeholder="+1 987 654 321" />
-    <Field label="Tax ID / GSTIN" name="taxId" value={formData.taxId} onChange={onChange} placeholder="TAX-1234" />
-    <Field label="Password" name="password" type="password" value={formData.password} onChange={onChange} icon={<Lock size={16} />} placeholder="••••••••" />
+    <Field label="Official Phone" name="mobile" type="tel" value={formData.mobile} onChange={onChange} icon={<Phone size={16} />} placeholder="+1 (555) 234-5678" />
+    <Field label="Contact Person Name" name="contactPersonName" value={formData.contactPersonName} onChange={onChange} icon={<User size={16} />} placeholder="e.g. James Anderson" />
+    <Field label="Contact Person Phone" name="contactPersonPhone" type="tel" value={formData.contactPersonPhone} onChange={onChange} icon={<Phone size={16} />} placeholder="+1 (555) 987-6543" />
+    <Field label="Federal Tax ID (EIN)" name="taxId" value={formData.taxId} onChange={onChange} icon={<Hash size={16} />} placeholder="e.g. 12-3456789" />
+    <Field label="Password" name="password" type="password" value={formData.password} onChange={onChange} icon={<Lock size={16} />} placeholder="Min. 8 characters" />
     <div className="space-y-1 md:col-span-2">
       <label className="text-xs font-semibold text-slate-400">Headquarters Address</label>
       <div className="relative">
         <MapPin size={16} className="absolute left-3 top-3 text-slate-500" />
         <input required name="address" value={formData.address} onChange={onChange}
           className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:ring-1 focus:ring-amber-500"
-          placeholder="123 Business Avenue, City, State" />
+          placeholder="123 Corporate Blvd, Chicago, IL 60601" />
       </div>
     </div>
     <Field label="Website (optional)" name="website" value={formData.website} onChange={onChange} placeholder="https://company.com" />
