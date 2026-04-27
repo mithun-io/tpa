@@ -10,7 +10,7 @@ export const getAdminClaims = async (params) => {
 };
 
 export const approveClaim = async (id, reason = 'Approved by admin') => {
-  const response = await axiosInstance.put(
+  const response = await axiosInstance.patch(
     `/admin/claims/${id}/approve`,
     null,
     { params: { reason } }
@@ -19,7 +19,7 @@ export const approveClaim = async (id, reason = 'Approved by admin') => {
 };
 
 export const rejectClaim = async (id, reason) => {
-  const response = await axiosInstance.put(
+  const response = await axiosInstance.patch(
     `/admin/claims/${id}/reject`,
     null,
     { params: { reason } }

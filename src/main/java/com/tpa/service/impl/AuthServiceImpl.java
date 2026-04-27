@@ -152,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(stored.getPassword()))
                 .gender(null)
                 .userRole(UserRole.CARRIER_USER)
-                .userStatus(UserStatus.INACTIVE)   // INACTIVE until admin approves
+                .userStatus(UserStatus.PENDING)   // PENDING until admin approves
                 .createdAt(LocalDateTime.now())
                 .build();
         user = userRepository.save(user);

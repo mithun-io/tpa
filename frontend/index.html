@@ -5,7 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TPA Insurance Claim System</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js" async defer></script>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        document.body.innerHTML += '<div style="color:red; background:white; padding:20px; z-index:9999; position:absolute; top:0; left:0; width:100%; border-bottom: 5px solid red;"><h1>JS Error</h1><p>' + message + '</p><pre>' + (error ? error.stack : '') + '</pre></div>';
+      };
+      window.addEventListener("unhandledrejection", function(event) {
+        document.body.innerHTML += '<div style="color:red; background:white; padding:20px; z-index:9999; position:absolute; top:0; left:0; width:100%; border-bottom: 5px solid red;"><h1>Unhandled Promise Rejection</h1><p>' + event.reason + '</p><pre>' + (event.reason ? event.reason.stack : '') + '</pre></div>';
+      });
+    </script>
   </head>
   <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>

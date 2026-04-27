@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Truck, CheckCircle, XCircle, ShieldCheck, Flag, MessageSquare, Brain,
   RefreshCw, X, AlertTriangle, Activity, FileSearch, Loader2, User, Calendar,
-  DollarSign, FileText, ChevronDown, ChevronUp, ShieldAlert, ShieldX } from 'lucide-react';
+  DollarSign, FileText, ChevronDown, ChevronUp, ShieldAlert, ShieldX,
+  Bot, Clock, Hospital, Banknote, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const token = () => localStorage.getItem('token');

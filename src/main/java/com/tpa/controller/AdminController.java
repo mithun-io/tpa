@@ -67,12 +67,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.reviewClaim(request, principal));
     }
 
-    @PutMapping("/claims/{id}/approve")
+    @PatchMapping("/claims/{id}/approve")
     public ResponseEntity<ClaimResponse> approveClaim(@PathVariable Long id, @RequestParam(required = false) String reason, Principal principal) {
         return ResponseEntity.ok(adminService.approveClaim(id, reason != null ? reason : "Approved by admin", principal));
     }
 
-    @PutMapping("/claims/{id}/reject")
+    @PatchMapping("/claims/{id}/reject")
     public ResponseEntity<ClaimResponse> rejectClaim(@PathVariable Long id, @RequestParam String reason, Principal principal) {
         return ResponseEntity.ok(adminService.rejectClaim(id, reason, principal));
     }

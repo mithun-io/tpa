@@ -1,8 +1,12 @@
 import React from 'react';
-import { FileText, DollarSign, Calendar } from 'lucide-react';
+import { FileText, DollarSign, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import { useAuth } from '../context/AuthContext';
 
-const ClaimCard = ({ claim, onClick }) => {
+const ClaimCard = ({ claim, onClick, onApprove, onReject }) => {
+  const { user } = useAuth();
+  const role = user?.userRole?.replace('ROLE_', '')?.replace('FMG_', '') || '';
+
   return (
     <div 
       onClick={() => onClick(claim.id)}
@@ -29,6 +33,23 @@ const ClaimCard = ({ claim, onClick }) => {
           <span>Created: {new Date(claim.createdDate).toLocaleDateString('en-US')}</span>
         </div>
       </div>
+      
+      {role?.toUpperCase() === 'ADMIN' && (claim.status === 'UNDER_REVIEW' || claim.status === 'AI_VALIDATED') && (
+        <div className="flex gap-2 mt-4 pt-4 border-t border-slate-700/50">
+          <button 
+            onClick={(e) => { e.stopPropagation(); onApprove && onApprove(claim.id); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium border border-emerald-500/20 transition-colors"
+          >
+            <CheckCircle className="w-3.5 h-3.5" /> Approve
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onReject && onReject(claim.id); }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium border border-red-500/20 transition-colors"
+          >
+            <XCircle className="w-3.5 h-3.5" /> Reject
+          </button>
+        </div>
+      )}
     </div>
   );
 };

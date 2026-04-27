@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import { getAdminClaims, approveClaim, rejectClaim, getClaimAiSummary, getUsers, blockUser, unblockUser, getSystemMonitoring, getCarriers, approveCarrier, rejectCarrier, assignCarrierToClaim } from '../api/admin.service';
 import StatusBadge from '../components/StatusBadge';
 import Loader from '../components/Loader';
@@ -149,6 +150,8 @@ const AiDrawer = ({ claim, result, loading, onClose }) => {
 /* ─── Main Admin Dashboard ────────────────────────────────── */
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const role = user?.userRole?.replace('ROLE_', '')?.replace('FMG_', '') || '';
   const [activeTab, setActiveTab] = useState('CLAIMS'); // 'CLAIMS' | 'USERS' | 'MONITORING'
 
   // Claims State
@@ -620,7 +623,7 @@ const AdminDashboard = () => {
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg text-xs font-medium border border-amber-500/20 transition-colors">
                               <Truck className="w-3.5 h-3.5" /> Assign Carrier
                             </button>
-                            {['AI_VALIDATED', 'UNDER_REVIEW', 'SUBMITTED'].includes(claim.status) && (
+                            {role?.toUpperCase() === 'ADMIN' && (claim.status === 'UNDER_REVIEW' || claim.status === 'AI_VALIDATED') && (
                               <>
                                 <button onClick={() => setApproveModal(claim.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium border border-emerald-500/20 transition-colors">
                                   <CheckCircle className="w-3.5 h-3.5" /> Approve
@@ -630,7 +633,7 @@ const AdminDashboard = () => {
                                 </button>
                               </>
                             )}
-                            {claim.status === 'CARRIER_APPROVED' && (
+                            {role?.toUpperCase() === 'ADMIN' && claim.status === 'CARRIER_APPROVED' && (
                               <button 
                                 onClick={() => navigate(`/claims/${claim.id}`)} 
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-blue-600/20"
@@ -941,7 +944,7 @@ const AdminDashboard = () => {
               <Truck className="w-4 h-4 text-amber-400" />
               <span className="text-sm font-semibold">Filter by Status:</span>
             </div>
-            {['', 'INACTIVE', 'ACTIVE', 'BLOCKED'].map(s => (
+            {['', 'PENDING', 'ACTIVE', 'BLOCKED'].map(s => (
               <button key={s}
                 onClick={() => setCarrierStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
@@ -1021,7 +1024,7 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-2">
-                                {carrier.userStatus !== 'ACTIVE' && (
+                                {role?.toUpperCase() === 'ADMIN' && carrier.userStatus === 'PENDING' && (
                                   <button
                                     onClick={() => handleApproveCarrier(carrier.id)}
                                     disabled={carrierActionLoading === `approve-${carrier.id}` || carrierActionLoading === `reject-${carrier.id}`}
@@ -1031,7 +1034,7 @@ const AdminDashboard = () => {
                                       : <><CheckCircle className="w-3.5 h-3.5" /> Approve</>}
                                   </button>
                                 )}
-                                {carrier.userStatus !== 'BLOCKED' && (
+                                {role?.toUpperCase() === 'ADMIN' && carrier.userStatus !== 'BLOCKED' && (
                                   <button
                                     onClick={() => handleRejectCarrier(carrier.id)}
                                     disabled={carrierActionLoading === `reject-${carrier.id}` || carrierActionLoading === `approve-${carrier.id}`}
