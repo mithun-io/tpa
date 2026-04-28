@@ -13,6 +13,7 @@ import {
   getPaymentForClaim
 } from '../api/claim.service';
 import axiosInstance from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
@@ -358,7 +359,7 @@ const DocumentViewer = ({ claimId }) => {
             return (
               <div key={doc.id} className="bg-slate-900 border border-slate-700 rounded-xl p-4 flex flex-col gap-3">
                 <div className="flex justify-between items-start">
-                  <span className="text-slate-200 font-bold text-sm">{doc.type.replace('_', ' ')}</span>
+                  <span className="text-slate-200 font-bold text-sm">{(doc.type || '').replace('_', ' ')}</span>
                   {doc.validationStatus && (
                     <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${isInvalid ? 'bg-red-500/10 text-red-400 border-red-500/30' : (lowConfidence ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30')}`}>
                       {isInvalid ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
@@ -442,6 +443,12 @@ const DocumentViewer = ({ claimId }) => {
 
 /* ─── Payment Release Section ─────────────────────────────── */
 const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
+  const { user } = useAuth();
+  const userRoleStr = (user?.userRole || user?.role || '').toUpperCase();
+  const isAdmin = userRoleStr.includes('ADMIN');
+
+  console.log('PaymentReleaseSection Render -> claimId:', claim.id, 'user:', user, 'isAdmin:', isAdmin, 'userRoleStr:', userRoleStr);
+
   const [loading, setLoading] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
 
@@ -535,7 +542,28 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
     );
   }
 
-  if (claim.status !== 'CARRIER_APPROVED' && claim.status !== 'PAYMENT_PENDING') return null;
+  if (claim.status !== 'CARRIER_APPROVED' && claim.status !== 'PAYMENT_PENDING') {
+    if (isAdmin) {
+      return (
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-700/50 rounded-full">
+              <Banknote className="w-6 h-6 text-slate-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-300">Payment Release Unavailable</h3>
+              <p className="text-xs text-slate-400 mt-1">Payment can only be released when the claim status is <span className="font-bold text-blue-400">CARRIER_APPROVED</span>.</p>
+            </div>
+          </div>
+          <button disabled className="px-6 py-2.5 bg-slate-700 text-slate-400 rounded-xl font-bold text-sm shadow-none flex items-center gap-2 cursor-not-allowed">
+            <CreditCard className="w-4 h-4" />
+            Release Payment
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="bg-blue-600/10 border border-blue-500/20 rounded-xl p-6 flex items-center justify-between">
@@ -549,14 +577,16 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
           <p className="text-xs text-slate-400">Amount: <span className="font-bold text-blue-400">${claim.amount}</span></p>
         </div>
       </div>
-      <button
-        onClick={handleReleasePayment}
-        disabled={loading}
-        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
-      >
-        <CreditCard className="w-4 h-4" />
-        {loading ? 'Processing...' : 'Release Payment'}
-      </button>
+      {isAdmin && (
+        <button
+          onClick={handleReleasePayment}
+          disabled={loading}
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+        >
+          <CreditCard className="w-4 h-4" />
+          {loading ? 'Processing...' : 'Release Payment'}
+        </button>
+      )}
     </div>
   );
 };

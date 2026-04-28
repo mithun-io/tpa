@@ -50,3 +50,8 @@ admin:
 
 file:
   upload-dir: ./test-uploads
+
+razorpay:
+  api:
+    key: test-rzp-key
+    secret: test-rzp-secret

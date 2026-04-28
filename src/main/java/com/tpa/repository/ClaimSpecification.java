@@ -33,7 +33,10 @@ public class ClaimSpecification {
     public static Specification<Claim> hasUser(String username) {
         return (root, query, cb) -> {
             if (username == null || username.isEmpty()) return null;
-            return cb.equal(root.join("user").get("username"), username);
+            return cb.or(
+                cb.equal(root.join("user").get("username"), username),
+                cb.equal(root.join("user").get("email"), username)
+            );
         };
     }
 }

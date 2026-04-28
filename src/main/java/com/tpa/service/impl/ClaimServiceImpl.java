@@ -48,6 +48,8 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Override
     public ClaimResponse createClaim(ClaimDataRequest request, String username) {
+        log.info("[ClaimService] Received claim request payload: {}", request);
+        
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -76,6 +78,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .billDate(request.getBillDate())
                 .build();
         
+        log.info("[ClaimService] Saving new claim entity to database: {}", claim);
         claim = claimRepository.save(claim);
         log.info("Claim {} created with status SUBMITTED. Upload both documents to trigger processing.", claim.getId());
         auditLogService.logAction(claim.getId(), "CLAIM_CREATED", null, claim.getStatus());

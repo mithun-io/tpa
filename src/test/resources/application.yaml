@@ -1,6 +1,7 @@
 razorpay:
-  key: rzp_test_SBtja63fMZx3Fu
-  secret: wbXx33gyvoV22sJZBJ2VSD7h
+  api:
+    key: rzp_test_SBtja63fMZx3Fu
+    secret: wbXx33gyvoV22sJZBJ2VSD7h
 jwt:
   secret: 6DWahQs8j5csH6afe3ZDJdmejkkw7Op78d1fNRQFcQiEMxnhV5XdklgEe6sixK5Hr9IFvjgJDAGJCPGneYgqcA==
   expiration: 8400000

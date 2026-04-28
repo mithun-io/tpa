@@ -5,7 +5,10 @@ import { useAuth } from '../context/AuthContext';
 
 const ClaimCard = ({ claim, onClick, onApprove, onReject }) => {
   const { user } = useAuth();
-  const role = user?.userRole?.replace('ROLE_', '')?.replace('FMG_', '') || '';
+  const userRoleStr = (user?.userRole || user?.role || '').toUpperCase();
+  const isAdmin = userRoleStr.includes('ADMIN');
+
+  console.log('ClaimCard Render -> claimId:', claim.id, 'user:', user, 'isAdmin:', isAdmin, 'userRoleStr:', userRoleStr);
 
   return (
     <div 
@@ -34,7 +37,7 @@ const ClaimCard = ({ claim, onClick, onApprove, onReject }) => {
         </div>
       </div>
       
-      {role?.toUpperCase() === 'ADMIN' && (claim.status === 'UNDER_REVIEW' || claim.status === 'AI_VALIDATED') && (
+      {isAdmin && (claim.status === 'UNDER_REVIEW' || claim.status === 'AI_VALIDATED') && (
         <div className="flex gap-2 mt-4 pt-4 border-t border-slate-700/50">
           <button 
             onClick={(e) => { e.stopPropagation(); onApprove && onApprove(claim.id); }}

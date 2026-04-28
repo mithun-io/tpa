@@ -16,31 +16,25 @@ export const createClaim = async (claimData) => {
 };
 
 export const uploadClaimDocument = async (claimId, documentType, file) => {
+  console.log(`[Frontend] Sending single file for claimId: ${claimId}, type: ${documentType}`);
   const formData = new FormData();
   formData.append('claimId', claimId);
   formData.append('documentType', documentType);
   formData.append('file', file);
 
-  const response = await axiosInstance.post('/files/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await axiosInstance.post('/files/upload', formData);
   return response.data;
 };
 
 export const uploadMultipleDocuments = async (claimId, files) => {
+  console.log(`[Frontend] Sending files for claimId: ${claimId}, count: ${files.length}`);
   const formData = new FormData();
   formData.append('claimId', claimId);
   files.forEach(file => {
     formData.append('files', file);
   });
 
-  const response = await axiosInstance.post('/files/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const response = await axiosInstance.post('/files/upload', formData);
   return response.data;
 };
 
@@ -68,9 +62,7 @@ export const validateDocumentAI = async (file, documentType) => {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('documentType', documentType);
-  const response = await axiosInstance.post('/ai/validate-document', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+  const response = await axiosInstance.post('/ai/validate-document', formData);
   return response.data;
 };
 

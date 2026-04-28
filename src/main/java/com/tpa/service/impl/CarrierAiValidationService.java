@@ -129,13 +129,16 @@ public class CarrierAiValidationService {
             log.info("Carrier {} AI validation: riskScore={}, status={}, recommendation={}",
                 carrier.getCompanyName(), riskScore, riskStatus, recommendation);
 
-            // Auto-approve if risk is low enough
+            // Auto-approve disabled to enforce manual admin approval for all carriers
+            /*
             if (riskScore < AUTO_APPROVE_THRESHOLD && "SAFE_TO_APPROVE".equalsIgnoreCase(recommendation)) {
                 carrier.getUser().setUserStatus(com.tpa.enums.UserStatus.ACTIVE);
                 log.info("Carrier {} auto-approved (riskScore < {})", carrier.getCompanyName(), AUTO_APPROVE_THRESHOLD);
             } else {
                 log.info("Carrier {} requires manual admin review (riskScore={})", carrier.getCompanyName(), riskScore);
             }
+            */
+            log.info("Carrier {} requires manual admin review (riskScore={})", carrier.getCompanyName(), riskScore);
 
             carrierRepository.save(carrier);
 

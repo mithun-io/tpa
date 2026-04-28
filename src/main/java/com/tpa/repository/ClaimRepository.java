@@ -20,6 +20,6 @@ public interface ClaimRepository extends JpaRepository<Claim, Long>, JpaSpecific
     @org.springframework.data.jpa.repository.Query("SELECT CAST(c.createdDate AS date), COUNT(c) FROM Claim c WHERE c.createdDate >= :startDate GROUP BY CAST(c.createdDate AS date) ORDER BY CAST(c.createdDate AS date)")
     List<Object[]> countClaimsPerDay(@org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate);
 
-    @org.springframework.data.jpa.repository.Query("SELECT SUM(c.amount) FROM Claim c WHERE c.status = 'CARRIER_APPROVED'")
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(c.amount) FROM Claim c WHERE c.status = com.tpa.enums.ClaimStatus.CARRIER_APPROVED OR c.status = com.tpa.enums.ClaimStatus.ADMIN_APPROVED OR c.status = com.tpa.enums.ClaimStatus.SETTLED")
     Double sumApprovedClaimAmount();
 }

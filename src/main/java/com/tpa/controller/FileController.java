@@ -20,15 +20,18 @@ public class FileController {
 
     private final FileUploadService fileUploadService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Map<String, Object>> uploadFiles(
             @RequestParam("claimId") Long claimId,
             @RequestParam(value = "files", required = false) java.util.List<MultipartFile> files,
             @RequestParam(value = "file", required = false) MultipartFile file,
-            @RequestParam(value = "documentType", required = false) String documentType) {
+            @RequestParam(value = "documentType", required = false, defaultValue = "CLAIM_FORM") String documentType) {
             
+        System.out.println("[Backend] Received file upload request for claimId: " + claimId);
+        
         if (files != null && !files.isEmpty()) {
+            System.out.println("[Backend] Processing multiple files: " + files.size());
             java.util.List<ClaimDocument> documents = fileUploadService.uploadFiles(claimId, files);
             return ResponseEntity.ok(Map.of(
                     "message", "Files uploaded successfully",

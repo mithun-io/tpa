@@ -35,10 +35,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final ClaimRepository claimRepository;
 
-    @Value("${razorpay.key}")
+    @Value("${razorpay.api.key}")
     private String razorpayKey;
 
-    @Value("${razorpay.secret}")
+    @Value("${razorpay.api.secret}")
     private String razorpaySecret;
 
     @Override
