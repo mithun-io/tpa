@@ -1,5 +1,6 @@
 package com.tpa.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tpa.enums.Gender;
 import jakarta.validation.constraints.*;
 import lombok.Data;

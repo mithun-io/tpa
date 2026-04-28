@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axios';
 import { getAdminClaims, approveClaim, rejectClaim, getClaimAiSummary, getUsers, blockUser, unblockUser, getSystemMonitoring, getCarriers, approveCarrier, rejectCarrier, assignCarrierToClaim } from '../api/admin.service';
 import StatusBadge from '../components/StatusBadge';
 import Loader from '../components/Loader';
@@ -225,20 +226,17 @@ const AdminDashboard = () => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const tok = localStorage.getItem('token');
-      const res = await fetch('/api/v1/notifications', { headers: { Authorization: `Bearer ${tok}` } });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(prev => {
-          const prevUnread = prev.filter(n => !n.read).length;
-          const newUnread  = (data || []).filter(n => !n.read).length;
-          if (newUnread > prevUnread) {
-            toast(`🔔 New notification: ${(data || []).find(n => !n.read)?.title || 'Claim update'}`,
-              { icon: '🔔', style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' } });
-          }
-          return data || [];
-        });
-      }
+      const res = await axiosInstance.get('/notifications');
+      const data = res.data;
+      setNotifications(prev => {
+        const prevUnread = prev.filter(n => !n.read).length;
+        const newUnread  = (data || []).filter(n => !n.read).length;
+        if (newUnread > prevUnread) {
+          toast(`🔔 New notification: ${(data || []).find(n => !n.read)?.title || 'Claim update'}`,
+            { icon: '🔔', style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' } });
+        }
+        return data || [];
+      });
     } catch (_) {}
   }, []);
 
@@ -250,14 +248,12 @@ const AdminDashboard = () => {
   }, [fetchNotifications]);
 
   const markAllRead = async () => {
-    const tok = localStorage.getItem('token');
-    await fetch('/api/v1/notifications/mark-read', { method: 'POST', headers: { Authorization: `Bearer ${tok}` } });
+    await axiosInstance.post('/notifications/mark-read');
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const markOneRead = async (id) => {
-    const tok = localStorage.getItem('token');
-    await fetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH', headers: { Authorization: `Bearer ${tok}` } });
+    await axiosInstance.patch(`/notifications/${id}/read`);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 

@@ -1,7 +1,5 @@
 package com.tpa.repository;
 
-
-
 import com.tpa.entity.User;
 import com.tpa.enums.Gender;
 import com.tpa.enums.UserRole;

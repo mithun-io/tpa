@@ -53,12 +53,15 @@ public class LocalStorageProvider implements StorageProvider {
     @Override
     public Resource loadFileAsResource(String filePathStr) {
         try {
-            Path filePath = Paths.get(filePathStr).normalize();
+            Path storedPath = Paths.get(filePathStr);
+            String fileName = storedPath.getFileName().toString();
+            Path filePath = this.uploadPath.resolve(fileName).normalize();
+
             Resource resource = new UrlResource(filePath.toUri());
             if (resource.exists()) {
                 return resource;
             } else {
-                throw new NoResourceFoundException("File not found " + filePathStr);
+                throw new NoResourceFoundException("File not found " + fileName);
             }
         } catch (MalformedURLException ex) {
             throw new NoResourceFoundException("File not found " + filePathStr);

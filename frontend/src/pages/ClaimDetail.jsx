@@ -17,7 +17,6 @@ import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
-import { Document, Page, pdfjs } from 'react-pdf';
 import {
   ArrowLeft, Download, Bot, FileText, Calendar, DollarSign,
   Activity, User, Building2, Stethoscope, CheckCircle, Clock,
@@ -26,14 +25,6 @@ import {
   CreditCard, Wallet, Banknote
 } from 'lucide-react';
 import ClaimTimeline from '../components/ClaimTimeline';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-
-// Set up react-pdf worker
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
 
 /* ─── Status Timeline ─────────────────────────────────────── */
 const STATUS_STEPS = ['SUBMITTED', 'AI_VALIDATED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'CARRIER_APPROVED', 'PAYMENT_PENDING', 'SETTLED'];
@@ -312,8 +303,6 @@ const DocumentViewer = ({ claimId }) => {
   const [docs, setDocs] = useState([]);
   const [activeDocUrl, setActiveDocUrl] = useState(null);
   const [activeDocType, setActiveDocType] = useState(null); // 'PDF' or 'IMAGE'
-  const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -327,7 +316,6 @@ const DocumentViewer = ({ claimId }) => {
       const blobUrl = URL.createObjectURL(response.data);
       setActiveDocUrl(blobUrl);
       setActiveDocType(fileType || 'PDF');
-      setPageNumber(1);
     } catch (e) {
       toast.error("Failed to load document");
     }
@@ -417,24 +405,15 @@ const DocumentViewer = ({ claimId }) => {
               Close Viewer
             </button>
           </div>
-          <div className="overflow-auto border border-slate-700 rounded shadow-2xl max-h-[800px] w-full flex justify-center bg-slate-800">
+          <div className="overflow-auto border border-slate-700 rounded shadow-2xl w-full flex justify-center bg-slate-800" style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}>
             {activeDocType === 'PDF' ? (
-              <Document file={activeDocUrl} onLoadSuccess={({ numPages }) => setNumPages(numPages)} loading={<Loader message="Loading PDF..." />}>
-                <Page pageNumber={pageNumber} scale={scale} renderTextLayer={false} renderAnnotationLayer={false} />
-              </Document>
+              <iframe src={`${activeDocUrl}#view=FitH`} width="100%" height="100%" style={{border: 'none', backgroundColor: 'transparent'}} title="PDF Document" />
             ) : (
-              <div className="p-4 flex flex-col items-center">
-                <img src={activeDocUrl} alt="Document" className="max-w-full rounded-lg shadow-lg" style={{ transform: `scale(${scale})` }} />
+              <div className="p-4 flex flex-col items-center overflow-auto w-full h-full">
+                <img src={activeDocUrl} alt="Document" className="max-w-full rounded-lg shadow-lg" style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }} />
               </div>
             )}
           </div>
-          {activeDocType === 'PDF' && numPages > 1 && (
-            <div className="flex gap-4 mt-4 items-center">
-              <button disabled={pageNumber <= 1} onClick={() => setPageNumber(p => p - 1)} className="px-3 py-1 bg-slate-700 rounded disabled:opacity-50 text-white text-sm">Prev</button>
-              <span className="text-slate-400 text-sm">Page {pageNumber} of {numPages}</span>
-              <button disabled={pageNumber >= numPages} onClick={() => setPageNumber(p => p + 1)} className="px-3 py-1 bg-slate-700 rounded disabled:opacity-50 text-white text-sm">Next</button>
-            </div>
-          )}
         </div>
       )}
     </div>

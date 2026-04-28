@@ -255,17 +255,6 @@ export default function CarrierDashboard() {
     setActionLoading(null);
   };
 
-  const actApprove = async (claimId) => {
-    setActionLoading(`${claimId}-approve`);
-    try {
-      const d = await api(`/claims/${claimId}/carrier-approve`, 'PUT');
-      toast.success(d.message || 'Claim Approved'); fetch_();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Approval failed');
-    }
-    setActionLoading(null);
-  };
-
   const isAct = (id, p) => actionLoading === `${id}-${p}`;
 
   const stats = [
@@ -355,7 +344,7 @@ export default function CarrierDashboard() {
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Btn icon={<ShieldCheck size={13}/>} label="Validate" color="blue" loading={isAct(c.claimId,'validate')} onClick={() => act(c.claimId,'validate')}/>
-                            {canApprove && <Btn icon={<CheckCircle size={13}/>} label="Approve" color="emerald" loading={isAct(c.claimId,'approve')} onClick={() => actApprove(c.claimId)}/>}
+                            {canApprove && <Btn icon={<CheckCircle size={13}/>} label="Approve" color="emerald" loading={isAct(c.claimId,'approve')} onClick={() => act(c.claimId,'approve')}/>}
                             {canAction && <Btn icon={<XCircle size={13}/>} label="Reject" color="red" loading={isAct(c.claimId,'reject')} onClick={() => act(c.claimId,'reject')}/>}
                             <Btn icon={<Flag size={13}/>} label="Flag" color="amber" loading={isAct(c.claimId,'flag')} onClick={() => act(c.claimId,'flag')}/>
                             <Btn icon={<MessageSquare size={13}/>} label="Remark" color="purple" onClick={() => setRemarkId(c.claimId)}/>
