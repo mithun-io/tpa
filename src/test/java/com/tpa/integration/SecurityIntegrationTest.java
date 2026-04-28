@@ -1,8 +1,8 @@
 package com.tpa.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tpa.TestcontainersConfiguration;
-import com.tpa.RequiresDocker;
+
+
 import com.tpa.dto.request.LoginRequest;
 import com.tpa.entity.User;
 import com.tpa.enums.Gender;
@@ -34,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Security Integration Tests – verifies JWT auth and role-based access
  * using a real Spring context backed by Testcontainers PostgreSQL + Redis.
  */
-@RequiresDocker
+
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 class SecurityIntegrationTest {
 
     @Autowired private WebApplicationContext webApplicationContext;

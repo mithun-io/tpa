@@ -1,8 +1,8 @@
 package com.tpa.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tpa.TestcontainersConfiguration;
-import com.tpa.RequiresDocker;
+
+
 import com.tpa.dto.request.ClaimDataRequest;
 import com.tpa.entity.Carrier;
 import com.tpa.entity.Claim;
@@ -46,9 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Phase 2 – Full Integration Tests
  * Covers the end-to-end claim processing pipeline using real PostgreSQL, Kafka, Redis via Testcontainers.
  */
-@RequiresDocker
+
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 class ClaimProcessingIntegrationTest {
 
     @Autowired private WebApplicationContext webApplicationContext;

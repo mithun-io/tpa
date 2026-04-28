@@ -1,6 +1,6 @@
 package com.tpa.controller;
 
-import com.tpa.TestcontainersConfiguration;
+
 import com.tpa.dto.response.ClaimResponse;
 import com.tpa.enums.ClaimStatus;
 import com.tpa.service.ClaimService;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 public class ClaimControllerIntegrationTest {
 
     @Autowired

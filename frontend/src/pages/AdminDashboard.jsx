@@ -206,6 +206,23 @@ const AdminDashboard = () => {
   const [notifLoading, setNotifLoading]     = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Carrier Approved Notification
+  const [carrierApprovedCount, setCarrierApprovedCount] = useState(0);
+  const [showCarrierPopup, setShowCarrierPopup] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin) {
+      getAdminClaims({ status: 'CARRIER_APPROVED' })
+        .then(data => {
+          if (data && data.totalElements > 0) {
+            setCarrierApprovedCount(data.totalElements);
+            setShowCarrierPopup(true);
+          }
+        })
+        .catch(err => console.error('Failed to fetch carrier approved claims', err));
+    }
+  }, [isAdmin]);
+
   const fetchNotifications = useCallback(async () => {
     try {
       const tok = localStorage.getItem('token');
@@ -434,6 +451,28 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+      {/* Carrier Approved Notification Modal */}
+      {showCarrierPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-amber-500/50 rounded-2xl shadow-2xl w-full max-w-md p-6 animate-[cardIn_0.3s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-amber-500/20 p-3 rounded-full">
+                <CheckCircle className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-100">Action Required</h3>
+            </div>
+            <p className="text-slate-300 text-sm mb-6">
+              Carrier has approved <strong className="text-amber-400">{carrierApprovedCount}</strong> claim(s). Ready for final approval/payment.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowCarrierPopup(false)} className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors">
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

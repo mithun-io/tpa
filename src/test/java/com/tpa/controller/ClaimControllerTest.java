@@ -42,6 +42,9 @@ class ClaimControllerTest {
     @Mock
     private PdfExportService pdfExportService;
 
+    @Mock
+    private com.tpa.service.CarrierService carrierService;
+
     @InjectMocks
     private ClaimController claimController;
 
@@ -152,5 +155,14 @@ class ClaimControllerTest {
         mockMvc.perform(get("/api/v1/claims"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void carrierApproveClaim_shouldReturn200_whenValid() throws Exception {
+        org.mockito.Mockito.doNothing().when(carrierService).approveClaim(any(), any());
+        
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/claims/1/carrier-approve"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 }

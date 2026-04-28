@@ -5,6 +5,7 @@ import com.tpa.dto.response.ClaimResponse;
 import com.tpa.enums.ClaimStatus;
 import com.tpa.service.ClaimService;
 import com.tpa.service.PdfExportService;
+import com.tpa.service.CarrierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public class ClaimController {
 
     private final ClaimService claimService;
     private final PdfExportService pdfExportService;
+    private final CarrierService carrierService;
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -152,5 +154,13 @@ public class ClaimController {
             }
         }
         return ResponseEntity.ok(claimService.getClaimAudits(id));
+    }
+
+    @PutMapping("/{id}/carrier-approve")
+    @PreAuthorize("hasRole('CARRIER_USER')")
+    public ResponseEntity<com.tpa.dto.response.ApiResponse<Void>> carrierApproveClaim(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        carrierService.approveClaim(id, auth.getName());
+        return ResponseEntity.ok(new com.tpa.dto.response.ApiResponse<>(true, "Claim status updated to CARRIER_APPROVED", null, 200));
     }
 }

@@ -1,7 +1,7 @@
 package com.tpa.repository;
 
-import com.tpa.TestcontainersConfiguration;
-import com.tpa.RequiresDocker;
+
+
 import com.tpa.entity.User;
 import com.tpa.enums.Gender;
 import com.tpa.enums.UserRole;
@@ -22,9 +22,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RequiresDocker
+
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 @Transactional
 class UserRepositoryTest {
 

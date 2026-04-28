@@ -33,6 +33,9 @@ class AdminControllerTest {
     @Mock
     private AdminService adminService;
 
+    @Mock
+    private com.tpa.service.ClaimService claimService;
+
     @InjectMocks
     private AdminController adminController;
 
@@ -79,6 +82,25 @@ class AdminControllerTest {
 
         mockMvc.perform(get("/api/v1/admin/customers"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void getAllClaims_shouldReturn200_whenAdminFetchesClaims() throws Exception {
+        org.springframework.data.domain.Page<ClaimResponse> page = new org.springframework.data.domain.PageImpl<>(List.of(new ClaimResponse()), org.springframework.data.domain.PageRequest.of(0, 10), 1);
+        when(claimService.searchClaims(org.mockito.ArgumentMatchers.nullable(ClaimStatus.class), 
+            org.mockito.ArgumentMatchers.nullable(java.time.LocalDateTime.class), 
+            org.mockito.ArgumentMatchers.nullable(java.time.LocalDateTime.class), 
+            org.mockito.ArgumentMatchers.nullable(Double.class), 
+            org.mockito.ArgumentMatchers.nullable(Double.class), 
+            org.mockito.ArgumentMatchers.nullable(String.class), 
+            org.mockito.ArgumentMatchers.any())).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/admin/claims")
+                .param("page", "0")
+                .param("size", "10"))
+                .andDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test

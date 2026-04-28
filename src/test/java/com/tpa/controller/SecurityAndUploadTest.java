@@ -19,13 +19,13 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.tpa.TestcontainersConfiguration;
-import com.tpa.RequiresDocker;
+
+
 import org.springframework.context.annotation.Import;
 
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
-@RequiresDocker
+
+
 class SecurityAndUploadTest {
 
     @Autowired 

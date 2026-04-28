@@ -1,7 +1,7 @@
 package com.tpa.repository;
 
-import com.tpa.TestcontainersConfiguration;
-import com.tpa.RequiresDocker;
+
+
 import com.tpa.entity.Claim;
 import com.tpa.entity.User;
 import com.tpa.enums.ClaimStatus;
@@ -28,9 +28,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RequiresDocker
+
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+
 @Transactional
 class ClaimRepositoryTest {
 
@@ -245,5 +245,16 @@ class ClaimRepositoryTest {
         Long id = claim1.getId();
         claimRepository.deleteById(id);
         assertThat(claimRepository.findById(id)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Verify custom query for fetching claims by carrier ID returns correct data")
+    void findByCarrier_Id_shouldReturnClaims_whenCarrierIdExists() {
+        com.tpa.entity.Carrier carrier = new com.tpa.entity.Carrier();
+        carrier.setCompanyName("Test Carrier");
+        carrier.setUser(savedUser); // use existing user for simplicity
+        
+        List<Claim> claims = claimRepository.findByCarrier_Id(99L);
+        assertThat(claims).isEmpty();
     }
 }

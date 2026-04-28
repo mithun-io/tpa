@@ -159,4 +159,18 @@ class ClaimServiceImplTest {
         assertThat(response.getContent()).hasSize(1);
     }
 
+    @Test
+    @DisplayName("Verify state transition constraints: cannot approve SETTLED claim")
+    void processClaimDecision_shouldNotTransition_whenClaimIsSettled() {
+        testClaim.setStatus(ClaimStatus.SETTLED);
+        ClaimDecisionResponse decision = new ClaimDecisionResponse();
+        decision.setStatus(ClaimStatus.CARRIER_APPROVED);
+
+        when(claimRepository.findById(100L)).thenReturn(Optional.of(testClaim));
+
+        claimService.processClaimDecision(100L, decision);
+
+        verify(claimRepository, never()).save(any());
+        assertThat(testClaim.getStatus()).isEqualTo(ClaimStatus.SETTLED);
+    }
 }

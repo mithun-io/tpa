@@ -162,4 +162,17 @@ class CarrierServiceImplTest {
         PolicyStatusResponse res = carrierService.getPolicyStatus(100L, "carrier@tpa.com");
         assertThat(res.getStatus()).isEqualTo("VALID");
     }
+
+    @Test
+    @DisplayName("Verify only assigned carriers can approve a claim")
+    void approveClaim_shouldThrowException_whenClaimNotAssignedToCarrier() {
+        Carrier otherCarrier = new Carrier();
+        otherCarrier.setId(20L); // different from testCarrier (10L)
+        testClaim.setCarrier(otherCarrier);
+
+        when(carrierRepository.findByUser_Email("carrier@tpa.com")).thenReturn(Optional.of(testCarrier));
+        when(claimRepository.findById(100L)).thenReturn(Optional.of(testClaim));
+
+        assertThrows(BadRequestException.class, () -> carrierService.approveClaim(100L, "carrier@tpa.com"));
+    }
 }
