@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPA Insurance Claim System - Architecture & Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0b1120;
+            --bg-surface: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #334155;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        
+        h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; color: #fff; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header {
+            padding: 6rem 0 4rem;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 800px; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        header h1 { font-size: 3rem; margin-bottom: 1rem; letter-spacing: -0.02em; }
+        header p { font-size: 1.15rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto; }
+
+        section { padding: 5rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .section-title { font-size: 2rem; margin-bottom: 3rem; text-align: center; }
+
+        .grid { display: grid; gap: 2rem; }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .card:hover { transform: translateY(-4px); border-color: rgba(96, 165, 250, 0.5); }
+        
+        .card h3 { font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); }
+        
+        ul.custom-list { list-style: none; }
+        ul.custom-list li { padding: 0.75rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: flex-start; gap: 0.75rem; }
+        ul.custom-list li:last-child { border-bottom: none; }
+        ul.custom-list li::before { content: '▹'; color: var(--primary); font-weight: bold; }
+
+        /* Diagrams */
+        .diagram {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .flow-row { display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; width: 100%; }
+        
+        .box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        .box-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .box-content { font-weight: 600; font-size: 1rem; color: #fff; }
+        
+        .box.blue { border-top: 3px solid var(--primary); }
+        .box.purple { border-top: 3px solid var(--secondary); }
+        .box.green { border-top: 3px solid var(--success); }
+        .box.orange { border-top: 3px solid var(--warning); }
+        .box.danger { border-top: 3px solid var(--danger); }
+        
+        .arrow { font-size: 1.5rem; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .vertical-flow { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%; max-width: 400px;}
+
+        /* Tables */
+        .table-wrapper { border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: rgba(0,0,0,0.3); padding: 1rem 1.5rem; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+
+        .tag { padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .tag.get { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tag.post { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .tag.put, .tag.patch { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        /* Schema styling */
+        .schema-box { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .schema-header { background: rgba(0,0,0,0.3); padding: 1rem; border-bottom: 1px solid var(--border); font-weight: 600; text-align: center; color: var(--primary); }
+        .schema-body { padding: 1rem; }
+        .schema-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; }
+        .schema-row:last-child { border-bottom: none; }
+        .pk { color: var(--warning); margin-right: 0.5rem; }
+        .fk { color: var(--secondary); margin-right: 0.5rem; }
+        .type { color: var(--text-secondary); }
+
+        footer { text-align: center; padding: 3rem 0; color: var(--text-secondary); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1 class="gradient-text">TPA Insurance Claim System</h1>
+            <p>Next-Generation Automated Claim Settlement & Fraud Detection Platform</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- 1. Overview -->
+        <section id="overview">
+            <h2 class="section-title">1. Project Overview</h2>
+            <div class="card" style="text-align: center; max-width: 900px; margin: 0 auto;">
+                <p style="font-size: 1.15rem; color: #e2e8f0; margin-bottom: 1.5rem;">
+                    A highly scalable Third-Party Administrator (TPA) platform designed to automate and streamline the lifecycle of healthcare insurance claims.
+                </p>
+                <p style="font-size: 1rem; color: var(--text-secondary);">
+                    From customer submission and AI-powered document validation to fraud detection and instant settlement via Razorpay, our system ensures accuracy, speed, and transparency at every step of the insurance workflow.
+                </p>
+            </div>
+        </section>
+
+        <!-- 2. Tech Stack -->
+        <section id="tech-stack">
+            <h2 class="section-title">2. Tech Stack</h2>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>⚙️ Backend</h3>
+                    <ul class="custom-list">
+                        <li>Spring Boot (Java 25)</li>
+                        <li>Spring Security & JWT</li>
+                        <li>JPA / Hibernate</li>
+                        <li>PostgreSQL Database</li>
+                        <li>Kafka (Event Streaming)</li>
+                        <li>Redis (Caching)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🖥️ Frontend</h3>
+                    <ul class="custom-list">
+                        <li>React (Vite)</li>
+                        <li>Tailwind CSS</li>
+                        <li>Axios & Context API</li>
+                        <li>Responsive Dashboard UI</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🚀 DevOps & Integrations</h3>
+                    <ul class="custom-list">
+                        <li>Docker & Docker Compose</li>
+                        <li>Nginx (Reverse Proxy)</li>
+                        <li>AWS EC2 Hosting</li>
+                        <li>Razorpay (Payments)</li>
+                        <li>AI Validation Engine</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. System Architecture -->
+        <section id="architecture">
+            <h2 class="section-title">3. System Architecture</h2>
+            <div class="diagram">
+                <div class="flow-row">
+                    <div class="box blue">
+                        <div class="box-title">Client Tier</div>
+                        <div class="box-content">React + Tailwind</div>
+                    </div>
+                    <div class="arrow">⇄</div>
+                    <div class="box purple" style="border-width: 2px; padding: 2rem;">
+                        <div class="box-title">Core API Layer</div>
+                        <div class="box-content">Spring Boot App</div>
+                    </div>
+                    <div class="arrow">⇄</div>
+                    <div class="box green">
+                        <div class="box-title">Data Tier</div>
+                        <div class="box-content">PostgreSQL</div>
+                    </div>
+                </div>
+                
+                <div class="flow-row" style="margin-top: 1rem;">
+                    <div class="arrow" style="transform: rotate(45deg);">↙</div>
+                    <div class="arrow" style="transform: rotate(-45deg);">↘</div>
+                </div>
+                
+                <div class="flow-row">
+                    <div class="box orange"><div class="box-title">Cache</div><div class="box-content">Redis</div></div>
+                    <div class="box orange"><div class="box-title">Events</div><div class="box-content">Kafka</div></div>
+                    <div class="box purple"><div class="box-title">External</div><div class="box-content">AI Engine</div></div>
+                    <div class="box green"><div class="box-title">Gateway</div><div class="box-content">Razorpay</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Database Schema -->
+        <section id="database">
+            <h2 class="section-title">4. Database Schema</h2>
+            <div class="grid grid-3">
+                <!-- Users -->
+                <div class="schema-box">
+                    <div class="schema-header">Users</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>name</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>email</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>password</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>role</span><span class="type">ENUM</span></div>
+                    </div>
+                </div>
+                <!-- Claims -->
+                <div class="schema-box">
+                    <div class="schema-header">Claims</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span class="fk">🔗 user_id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span class="fk">🔗 carrier_id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>amount</span><span class="type">DECIMAL</span></div>
+                        <div class="schema-row"><span>status</span><span class="type">ENUM</span></div>
+                    </div>
+                </div>
+                <!-- Carriers -->
+                <div class="schema-box">
+                    <div class="schema-header">Carriers</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>company_name</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>license_no</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>status</span><span class="type">ENUM</span></div>
+                    </div>
+                </div>
+                <!-- Documents -->
+                <div class="schema-box">
+                    <div class="schema-header">Documents</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span class="fk">🔗 claim_id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>file_url</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>doc_type</span><span class="type">VARCHAR</span></div>
+                    </div>
+                </div>
+                <!-- Payments -->
+                <div class="schema-box">
+                    <div class="schema-header">Payments</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span class="fk">🔗 claim_id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>razorpay_id</span><span class="type">VARCHAR</span></div>
+                        <div class="schema-row"><span>amount</span><span class="type">DECIMAL</span></div>
+                        <div class="schema-row"><span>status</span><span class="type">ENUM</span></div>
+                    </div>
+                </div>
+                <!-- FraudFlags -->
+                <div class="schema-box">
+                    <div class="schema-header">FraudFlags</div>
+                    <div class="schema-body">
+                        <div class="schema-row"><span class="pk">🔑 id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span class="fk">🔗 claim_id</span><span class="type">UUID</span></div>
+                        <div class="schema-row"><span>reason</span><span class="type">TEXT</span></div>
+                        <div class="schema-row"><span>severity</span><span class="type">ENUM</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ER Diagram -->
+        <section id="er-diagram">
+            <h2 class="section-title">5. Entity Relationship Diagram</h2>
+            <div class="diagram" style="padding: 4rem 2rem;">
+                <div class="flow-row">
+                    <div class="box blue"><div class="box-content">User</div></div>
+                    <div class="arrow" style="font-size: 1rem; width: 100px;">1 — M →</div>
+                    <div class="box purple" style="border-width: 2px;"><div class="box-content">Claims</div></div>
+                    <div class="arrow" style="font-size: 1rem; width: 100px;">← M — 1</div>
+                    <div class="box orange"><div class="box-content">Carrier</div></div>
+                </div>
+                <div class="flow-row" style="gap: 17rem;">
+                    <div class="arrow" style="transform: rotate(90deg); font-size: 1rem;">1 — M →</div>
+                    <div class="arrow" style="transform: rotate(90deg); font-size: 1rem;">1 — 1 →</div>
+                </div>
+                <div class="flow-row" style="gap: 12rem;">
+                    <div class="box green"><div class="box-content">Documents</div></div>
+                    <div class="box green"><div class="box-content">Payment</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Application Workflow -->
+        <section id="workflow">
+            <h2 class="section-title">6. Application Workflow</h2>
+            <div class="diagram">
+                <div class="flow-row">
+                    <div class="box blue"><div class="box-title">Customer</div><div class="box-content">Submit Claim</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box blue"><div class="box-title">System</div><div class="box-content">Upload Docs</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box purple"><div class="box-title">Automated</div><div class="box-content">AI Validation</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box orange"><div class="box-title">Platform</div><div class="box-content">Admin Review</div></div>
+                </div>
+                <div class="arrow" style="margin: 1rem 0;">↓</div>
+                <div class="flow-row">
+                    <div class="box success"><div class="box-title">End</div><div class="box-content">Settlement</div></div>
+                    <div class="arrow">←</div>
+                    <div class="box green"><div class="box-title">Razorpay</div><div class="box-content">Payment Processing</div></div>
+                    <div class="arrow">←</div>
+                    <div class="box orange"><div class="box-title">External</div><div class="box-content">Carrier Review</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. User Flow -->
+        <section id="user-flow">
+            <h2 class="section-title">7. User Flow</h2>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>👤 Customer Journey</h3>
+                    <ul class="custom-list">
+                        <li>Register & Login</li>
+                        <li>Fill Claim Details</li>
+                        <li>Upload Medical Records</li>
+                        <li>Track Claim Status in Dashboard</li>
+                        <li>Receive Settlement Notification</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🛡️ Admin Journey</h3>
+                    <ul class="custom-list">
+                        <li>Review AI Validation Results</li>
+                        <li>Check Fraud Alerts</li>
+                        <li>Approve / Reject Claims</li>
+                        <li>Manage Carrier Registrations</li>
+                        <li>Trigger Payouts (Razorpay)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🏢 Carrier Journey</h3>
+                    <ul class="custom-list">
+                        <li>Register Company Details</li>
+                        <li>Wait for Admin Approval</li>
+                        <li>View Assigned Claims</li>
+                        <li>Provide Carrier Final Approval</li>
+                        <li>Monitor Disbursed Funds</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. AI Validation Flow -->
+        <section id="ai-flow">
+            <h2 class="section-title">8. AI Validation Flow</h2>
+            <div class="diagram">
+                <div class="flow-row">
+                    <div class="box blue"><div class="box-title">Input</div><div class="box-content">Medical Docs</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box purple"><div class="box-title">Step 1</div><div class="box-content">OCR Parsing</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box purple"><div class="box-title">Step 2</div><div class="box-content">Data Extraction</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box purple"><div class="box-title">Step 3</div><div class="box-content">Policy Cross-check</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box green"><div class="box-title">Output</div><div class="box-content">Validation Result</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Fraud Detection Flow -->
+        <section id="fraud-flow">
+            <h2 class="section-title">9. Fraud Detection Flow</h2>
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>🚨 Anomaly Triggers</h3>
+                    <ul class="custom-list">
+                        <li><strong>Amount Mismatch:</strong> Claimed amount significantly exceeds standard procedure costs.</li>
+                        <li><strong>Date Mismatch:</strong> Service dates conflict with policy coverage periods.</li>
+                        <li><strong>Duplicate Claim:</strong> Identical service claims submitted multiple times.</li>
+                        <li><strong>Suspicious Pattern:</strong> High frequency of claims from the same provider/patient in a short time.</li>
+                    </ul>
+                </div>
+                <div class="diagram" style="padding: 2rem;">
+                    <div class="vertical-flow">
+                        <div class="box blue" style="width: 100%;">Incoming Claim Data</div>
+                        <div class="arrow">↓</div>
+                        <div class="box orange" style="width: 100%; border-style: dashed;">Fraud Rules Engine</div>
+                        <div class="arrow">↓</div>
+                        <div class="flow-row">
+                            <div class="box green">Clear (Pass)</div>
+                            <div class="box danger">Flagged (Manual Review)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Payment Flow -->
+        <section id="payment-flow">
+            <h2 class="section-title">10. Payment Flow (Razorpay)</h2>
+            <div class="diagram">
+                <div class="flow-row">
+                    <div class="box purple"><div class="box-title">Admin Action</div><div class="box-content">Trigger Pay</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box blue"><div class="box-title">Backend API</div><div class="box-content">Create Order</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box green"><div class="box-title">Razorpay</div><div class="box-content">Checkout UI</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box blue"><div class="box-title">Backend Callback</div><div class="box-content">Verify Signature</div></div>
+                    <div class="arrow">→</div>
+                    <div class="box success"><div class="box-title">Database</div><div class="box-content">Update Status</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. API Overview -->
+        <section id="api-overview">
+            <h2 class="section-title">11. API Overview</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tag post">POST</span></td>
+                            <td>/api/auth/register</td>
+                            <td>Register a new User/Carrier</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag post">POST</span></td>
+                            <td>/api/auth/login</td>
+                            <td>Authenticate user and return JWT</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag post">POST</span></td>
+                            <td>/api/claims</td>
+                            <td>Create a new insurance claim</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag get">GET</span></td>
+                            <td>/api/claims/{id}</td>
+                            <td>Retrieve claim details</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag patch">PATCH</span></td>
+                            <td>/api/claims/{id}/status</td>
+                            <td>Update claim status (Admin/Carrier)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag post">POST</span></td>
+                            <td>/api/payments/create-order</td>
+                            <td>Initialize Razorpay order</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag post">POST</span></td>
+                            <td>/api/payments/verify</td>
+                            <td>Verify payment signature</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 12. Security Design -->
+        <section id="security">
+            <h2 class="section-title">12. Security Design</h2>
+            <div class="grid grid-3">
+                <div class="card">
+                    <h3>🔐 Authentication</h3>
+                    <p>Stateless JWT (JSON Web Tokens) are used for securing all API communications. Tokens include role claims for rapid validation without DB hits.</p>
+                </div>
+                <div class="card">
+                    <h3>🛡️ Authorization</h3>
+                    <p>Strict Role-Based Access Control (RBAC). Routes and actions are guarded against unauthorized roles (Customer vs. Admin vs. Carrier) via Spring Security annotations.</p>
+                </div>
+                <div class="card">
+                    <h3>📦 Data Isolation</h3>
+                    <p>Tenant-level logic isolation ensures Carriers only view claims assigned to them, and Customers only access their own Personally Identifiable Information (PII).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13. Deployment Architecture -->
+        <section id="deployment">
+            <h2 class="section-title">13. Deployment Architecture</h2>
+            <div class="diagram">
+                <div style="border: 2px dashed #475569; padding: 3rem 2rem 2rem; border-radius: 16px; position: relative; width: 100%; max-width: 800px;">
+                    <div style="position: absolute; top: -14px; left: 2rem; background: var(--bg-surface); padding: 0 1rem; color: #94a3b8; font-weight: 600; border-radius: 4px;">AWS EC2 Instance (Ubuntu)</div>
+                    
+                    <div style="border: 2px solid var(--primary); padding: 3rem 2rem 2rem; border-radius: 12px; position: relative; background: rgba(59, 130, 246, 0.05);">
+                        <div style="position: absolute; top: -14px; left: 2rem; background: var(--bg-base); border: 1px solid var(--primary); padding: 0 1rem; color: var(--primary); font-weight: 600; border-radius: 4px;">Docker Compose Network</div>
+                        
+                        <div class="flow-row">
+                            <div class="box blue"><div class="box-title">Container</div><div class="box-content">Nginx (Proxy)</div></div>
+                            <div class="box purple"><div class="box-title">Container</div><div class="box-content">Spring Boot</div></div>
+                            <div class="box green"><div class="box-title">Container</div><div class="box-content">PostgreSQL DB</div></div>
+                        </div>
+                        
+                        <div class="flow-row" style="margin-top: 2rem;">
+                            <div class="box orange"><div class="box-title">Container</div><div class="box-content">Redis Cache</div></div>
+                            <div class="box orange"><div class="box-title">Container</div><div class="box-content">Kafka Broker</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 TPA Insurance Claim Processing System. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
