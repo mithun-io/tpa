@@ -47,10 +47,10 @@ public class PaymentServiceImpl implements PaymentService {
         Claim claim = claimRepository.findById(request.claimId())
                 .orElseThrow(() -> new NoResourceFoundException("Claim not found with id: " + request.claimId()));
 
-        // ✅ BUSINESS RULE: Payment only allowed for CARRIER_APPROVED claims
-        if (claim.getStatus() != ClaimStatus.CARRIER_APPROVED) {
+        // ✅ BUSINESS RULE: Payment allowed for ADMIN_APPROVED or CARRIER_APPROVED claims
+        if (claim.getStatus() != ClaimStatus.CARRIER_APPROVED && claim.getStatus() != ClaimStatus.ADMIN_APPROVED) {
             throw new IllegalStateException(
-                    "Payment can only be initiated for CARRIER_APPROVED claims. Current status: " + claim.getStatus());
+                    "Payment can only be initiated for ADMIN_APPROVED or CARRIER_APPROVED claims. Current status: " + claim.getStatus());
         }
 
         // Prevent duplicate orders

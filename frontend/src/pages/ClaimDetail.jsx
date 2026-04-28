@@ -453,7 +453,7 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
   const [paymentData, setPaymentData] = useState(null);
 
   useEffect(() => {
-    if (claim.status === 'SETTLED' || claim.status === 'PAYMENT_PENDING') {
+    if (claim.status === 'SETTLED' || claim.status === 'PAYMENT_PENDING' || claim.status === 'ADMIN_APPROVED' || claim.status === 'CARRIER_APPROVED') {
       getPaymentForClaim(claim.id).then(setPaymentData).catch(() => {});
     }
   }, [claim.id, claim.status]);
@@ -542,7 +542,7 @@ const PaymentReleaseSection = ({ claim, onPaymentSuccess }) => {
     );
   }
 
-  if (claim.status !== 'CARRIER_APPROVED' && claim.status !== 'PAYMENT_PENDING') {
+  if (claim.status !== 'CARRIER_APPROVED' && claim.status !== 'PAYMENT_PENDING' && claim.status !== 'ADMIN_APPROVED') {
     if (isAdmin) {
       return (
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 flex items-center justify-between">

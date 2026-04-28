@@ -176,8 +176,8 @@ public class CarrierServiceImpl implements CarrierService {
         // Notify all admins asynchronously
         notificationService.notifyAllAdmins(
                 "\uD83D\uDCCB Claim #" + claimId + " Approved by Carrier",
-                "Claim #" + claimId + " (Policy: " + claim.getPolicyNumber() + ") has been approved by carrier " + carrier.getCompanyName() + ".",
-                "/admin/claims/" + claimId
+                "Claim #" + claimId + " (Policy: " + claim.getPolicyNumber() + ") has been approved by carrier " + carrier.getCompanyName() + ". Payment can now be released.",
+                "/claims/" + claimId
         );
     }
 
@@ -198,6 +198,11 @@ public class CarrierServiceImpl implements CarrierService {
                 .claimId(claim.getId()).policyNumber(claim.getPolicyNumber())
                 .customerEmail(claim.getUser().getEmail()).status(ClaimStatus.REJECTED)
                 .message("Your claim has been REJECTED by the carrier.").build());
+        notificationService.notifyAllAdmins(
+                "❌ Claim #" + claimId + " Rejected by Carrier",
+                "Claim #" + claimId + " (Policy: " + claim.getPolicyNumber() + ") has been rejected by carrier " + carrier.getCompanyName() + ".",
+                "/claims/" + claimId
+        );
     }
 
     @Override

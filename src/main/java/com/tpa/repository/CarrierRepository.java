@@ -12,4 +12,5 @@ public interface CarrierRepository extends JpaRepository<Carrier, Long> {
     Optional<Carrier> findByUser_Email(String email);
     Optional<Carrier> findByUser_Username(String username);
     Optional<Carrier> findByUser_Id(Long userId);
+    boolean existsByRegistrationNumber(String registrationNumber);
 }

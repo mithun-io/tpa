@@ -114,6 +114,9 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("user already exists");
         }
+        if (carrierRepository.existsByRegistrationNumber(request.getRegistrationNumber())) {
+            throw new ConflictException("a carrier with this registration number already exists");
+        }
         if (redisService.isPendingCarrierExists(request.getEmail())) {
             throw new ConflictException("pending carrier registration already exists");
         }
@@ -141,6 +144,9 @@ public class AuthServiceImpl implements AuthService {
         }
         if (userRepository.existsByEmail(stored.getEmail())) {
             throw new ConflictException("user already exists");
+        }
+        if (carrierRepository.existsByRegistrationNumber(stored.getRegistrationNumber())) {
+            throw new ConflictException("a carrier with registration number '" + stored.getRegistrationNumber() + "' already exists");
         }
 
         User user = User.builder()

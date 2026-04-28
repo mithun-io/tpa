@@ -4,11 +4,14 @@ import { Truck, CheckCircle, XCircle, ShieldCheck, Flag, MessageSquare, Brain,
   DollarSign, FileText, ChevronDown, ChevronUp, ShieldAlert, ShieldX,
   Bot, Clock, Hospital, Banknote, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axiosInstance from '../api/axios';
 
-const token = () => localStorage.getItem('token');
-const api = (url, method = 'GET', body) =>
-  fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    body: body ? JSON.stringify(body) : undefined }).then(r => r.json());
+const api = async (url, method = 'GET', body) => {
+  const config = { method, url };
+  if (body) config.data = body;
+  const response = await axiosInstance(config);
+  return response.data;
+};
 
 const STATUS_CONFIG = {
   'SUBMITTED': { label: 'Submitted', icon: FileText, color: 'text-slate-400', bg: 'bg-slate-400/10' },
@@ -100,9 +103,12 @@ const RemarkModal = ({ claimId, onClose, onSuccess }) => {
   const save = async () => {
     if (!remark.trim()) return;
     setSaving(true);
-    const d = await api(`/api/v1/carrier/claims/${claimId}/remark`, 'PATCH', { remark });
-    if (d.success) { toast.success('Remark saved'); onSuccess(); onClose(); }
-    else toast.error(d.message || 'Failed');
+    try {
+      const d = await api(`/carrier/claims/${claimId}/remark`, 'PATCH', { remark });
+      toast.success('Remark saved'); onSuccess(); onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed');
+    }
     setSaving(false);
   };
   return (
@@ -136,8 +142,12 @@ const AiModal = ({ claimId, onClose }) => {
   const [prompt, setPrompt] = useState('Analyze this claim for fraud risk, billing mismatch, and policy coverage issues.');
   const run = async () => {
     setLoading(true);
-    const d = await api(`/api/v1/carrier/claims/${claimId}/ai-analyze`, 'POST', { prompt });
-    if (d.success) setResult(d.data); else toast.error(d.message || 'AI failed');
+    try {
+      const d = await api(`/carrier/claims/${claimId}/ai-analyze`, 'POST', { prompt });
+      setResult(d.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'AI failed');
+    }
     setLoading(false);
   };
   const rPct = result ? Math.round((result.riskScore ?? 0) * 100) : 0;
@@ -223,9 +233,12 @@ export default function CarrierDashboard() {
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
-    const d = await api('/api/v1/carrier/claims');
-    if (d.success) setClaims(d.data ?? []);
-    else toast.error('Failed to load claims');
+    try {
+      const d = await api('/carrier/claims');
+      setClaims(d.data ?? []);
+    } catch (err) {
+      toast.error('Failed to load claims: ' + (err.response?.data?.message || err.message));
+    }
     setLoading(false);
   }, []);
 
@@ -233,9 +246,12 @@ export default function CarrierDashboard() {
 
   const act = async (claimId, path, method = 'PATCH', body) => {
     setActionLoading(`${claimId}-${path}`);
-    const d = await api(`/api/v1/carrier/claims/${claimId}/${path}`, method, body);
-    if (d.success) { toast.success(d.message || 'Done'); fetch_(); }
-    else toast.error(d.message || 'Action failed');
+    try {
+      const d = await api(`/carrier/claims/${claimId}/${path}`, method, body);
+      toast.success(d.message || 'Done'); fetch_();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed');
+    }
     setActionLoading(null);
   };
 

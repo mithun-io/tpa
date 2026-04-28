@@ -1,0 +1,25 @@
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+
+sudo usermod -aG docker ubuntu
+newgrp docker
+
+sudo apt install docker-compose -y
+
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+
+sudo usermod -aG docker ubuntu
+exit
+
+docker-compose up --build -d
+
+| Type       | Port | Source    |
+| ---------- | ---- | --------- |
+| Custom TCP | 3000 | 0.0.0.0/0 |
+| Custom TCP | 8080 | 0.0.0.0/0 |
+
+
+http://3.80.47.59:3000
